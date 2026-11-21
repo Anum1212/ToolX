@@ -90,6 +90,7 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
 
 - AGP 8.7.3, Kotlin 2.1.0, Gradle 8.11.1, Compose BOM 2024.12.01, Media3 1.5.1.
 - **Run Gradle on JDK 21** (Android Studio's bundled JBR). Gradle 8.11.1 does not support Java 25. Upgrading to Gradle 9 would also require upgrading AGP, so upgrade the whole toolchain together, deliberately.
+- **Release (R8):** `proguard-rules.pro` has `-dontwarn` for `com.gemalto.jp2` (PdfBox's optional JPEG 2000 codec) and `java.awt` / `javax.imageio` / `javax.swing` (jaudiotagger's desktop artwork code). Without them R8 fails with "Missing classes". It also keeps `org.jaudiotagger.**` and `com.tom_roush.pdfbox.**` whole, because both use reflection. The release APK was checked on the emulator on 2026-11-21: Edit tags read tags and a cover, and PDF to text extracted text.
 - There are no `gradlew` scripts checked in. For a command-line build, use the Gradle 8.11.1 distribution Studio downloaded (`~/.gradle/wrapper/dists/gradle-8.11.1-bin/*/gradle-8.11.1/bin/gradle`), with `JAVA_HOME` set to the JBR, and run `gradle --console=plain :app:compileDebugKotlin`.
 - On the laptop, Android Studio's bundled JBR (`D:\installation\Android Studio\jbr`) is **Java 25**, so it can't be used. Use `C:\Users\anama\.jdks\jbr-21.0.11` as `JAVA_HOME`.
 - Development has happened on Windows machines where git, a JDK or the Android SDK may not be on PATH. Check before assuming any of them is there.
