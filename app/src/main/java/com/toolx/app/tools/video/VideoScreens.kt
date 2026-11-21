@@ -64,7 +64,7 @@ import kotlin.math.roundToInt
 
 /** Shared layout for video tools: pick → preview → options → export → result. */
 @Composable
-private fun VideoToolFrame(
+internal fun VideoToolFrame(
     tool: Tool,
     onBack: () -> Unit,
     exportLabel: String,

@@ -103,11 +103,11 @@ object ToolRegistry {
         Tool(ToolIds.VIDEO_SPLIT, "Split", "Break a video into parts", Icons.AutoMirrored.Rounded.CallSplit, ToolCategory.VIDEO, available = true, keywords = listOf("parts", "divide", "cut")),
         Tool(ToolIds.VIDEO_MERGE, "Merge", "Join several videos into one", Icons.AutoMirrored.Rounded.MergeType, ToolCategory.VIDEO, available = true, keywords = listOf("join", "combine")),
         Tool(ToolIds.VIDEO_SPEED, "Speed", "Speed up or slow down a video", Icons.Rounded.Speed, ToolCategory.VIDEO, available = true, keywords = listOf("slow motion", "fast", "timelapse")),
-        Tool(ToolIds.VIDEO_REVERSE, "Reverse", "Play a video backwards", Icons.Rounded.FastRewind, ToolCategory.VIDEO, keywords = listOf("rewind", "backwards")),
-        Tool(ToolIds.VIDEO_TO_GIF, "Video to GIF", "Turn a clip into an animated GIF", Icons.Rounded.Gif, ToolCategory.VIDEO, keywords = listOf("animation")),
-        Tool(ToolIds.VIDEO_CONVERT, "Convert video", "Change container or codec", Icons.Rounded.VideoSettings, ToolCategory.VIDEO, keywords = listOf("mp4", "mkv", "mov", "format")),
-        Tool(ToolIds.VIDEO_ADD_MUSIC, "Add music", "Put a soundtrack under a video", Icons.Rounded.LibraryMusic, ToolCategory.VIDEO, keywords = listOf("song", "soundtrack")),
-        Tool(ToolIds.VIDEO_WATERMARK, "Watermark video", "Stamp text or a logo on a video", Icons.AutoMirrored.Rounded.BrandingWatermark, ToolCategory.VIDEO, keywords = listOf("logo", "text")),
+        Tool(ToolIds.VIDEO_REVERSE, "Reverse video", "Play a video backwards", Icons.Rounded.FastRewind, ToolCategory.VIDEO, available = true, keywords = listOf("rewind", "backwards")),
+        Tool(ToolIds.VIDEO_TO_GIF, "Video to GIF", "Turn a clip into an animated GIF", Icons.Rounded.Gif, ToolCategory.VIDEO, available = true, keywords = listOf("animation")),
+        Tool(ToolIds.VIDEO_CONVERT, "Convert video", "Change container or codec", Icons.Rounded.VideoSettings, ToolCategory.VIDEO, available = true, keywords = listOf("mp4", "mkv", "mov", "format")),
+        Tool(ToolIds.VIDEO_ADD_MUSIC, "Add music", "Put a soundtrack under a video", Icons.Rounded.LibraryMusic, ToolCategory.VIDEO, available = true, keywords = listOf("song", "soundtrack")),
+        Tool(ToolIds.VIDEO_WATERMARK, "Watermark video", "Stamp text or a logo on a video", Icons.AutoMirrored.Rounded.BrandingWatermark, ToolCategory.VIDEO, available = true, keywords = listOf("logo", "text")),
 
         // ---- Audio ----
         Tool(ToolIds.AUDIO_TRIM, "Trim audio", "Keep just the part you want", Icons.Rounded.ContentCut, ToolCategory.AUDIO, available = true, keywords = listOf("cut", "clip", "ringtone", "mp3")),
@@ -115,10 +115,10 @@ object ToolRegistry {
         Tool(ToolIds.AUDIO_MERGE, "Merge audio", "Join tracks into one", Icons.AutoMirrored.Rounded.QueueMusic, ToolCategory.AUDIO, available = true, keywords = listOf("join", "combine", "mix")),
         Tool(ToolIds.AUDIO_SPEED, "Audio speed", "Change tempo, with or without pitch", Icons.Rounded.Speed, ToolCategory.AUDIO, available = true, keywords = listOf("tempo", "pitch", "nightcore", "slow")),
         Tool(ToolIds.AUDIO_VOLUME, "Audio volume", "Boost or lower the sound", Icons.AutoMirrored.Rounded.VolumeUp, ToolCategory.AUDIO, available = true, keywords = listOf("loud", "quiet", "boost", "gain")),
-        Tool(ToolIds.AUDIO_CONVERT, "Convert audio", "MP3, WAV, FLAC or AAC", Icons.Rounded.SwapHoriz, ToolCategory.AUDIO, keywords = listOf("mp3", "wav", "flac", "aac", "format")),
-        Tool(ToolIds.AUDIO_REVERSE, "Reverse audio", "Play audio backwards", Icons.Rounded.FastRewind, ToolCategory.AUDIO, keywords = listOf("backwards", "rewind")),
-        Tool(ToolIds.AUDIO_NOISE, "Noise reduction", "Remove background noise", Icons.Rounded.GraphicEq, ToolCategory.AUDIO, keywords = listOf("denoise", "hiss", "clean")),
-        Tool(ToolIds.AUDIO_METADATA, "Edit tags", "Title, artist, album and cover", Icons.Rounded.EditNote, ToolCategory.AUDIO, keywords = listOf("metadata", "id3", "artist", "album", "cover")),
+        Tool(ToolIds.AUDIO_CONVERT, "Convert audio", "M4A, WAV, FLAC or Opus", Icons.Rounded.SwapHoriz, ToolCategory.AUDIO, available = true, keywords = listOf("mp3", "wav", "flac", "aac", "format")),
+        Tool(ToolIds.AUDIO_REVERSE, "Reverse audio", "Play audio backwards", Icons.Rounded.FastRewind, ToolCategory.AUDIO, available = true, keywords = listOf("backwards", "rewind")),
+        Tool(ToolIds.AUDIO_NOISE, "Noise reduction", "Remove background noise", Icons.Rounded.GraphicEq, ToolCategory.AUDIO, available = true, keywords = listOf("denoise", "hiss", "clean")),
+        Tool(ToolIds.AUDIO_METADATA, "Edit tags", "Title, artist, album and cover", Icons.Rounded.EditNote, ToolCategory.AUDIO, available = true, keywords = listOf("metadata", "id3", "artist", "album", "cover")),
 
         // ---- Image ----
         Tool(ToolIds.IMAGE_RESIZE, "Resize", "Change image dimensions", Icons.Rounded.PhotoSizeSelectLarge, ToolCategory.IMAGE, available = true, keywords = listOf("scale", "dimensions", "width", "height")),
@@ -127,9 +127,9 @@ object ToolRegistry {
         Tool(ToolIds.IMAGE_CROP, "Crop", "Cut an image to a region or ratio", Icons.Rounded.Crop, ToolCategory.IMAGE, available = true, keywords = listOf("aspect", "ratio", "square", "cut")),
         Tool(ToolIds.IMAGE_REMOVE_BG, "Remove background", "Cut out a person, or change the background colour", Icons.Rounded.Wallpaper, ToolCategory.IMAGE, available = true, keywords = listOf("background", "transparent", "cutout", "eraser", "colour", "color", "png")),
         Tool(ToolIds.IMAGE_PASSPORT, "Passport photo", "ID photo with a plain background, sized for printing", Icons.Rounded.AssignmentInd, ToolCategory.IMAGE, available = true, keywords = listOf("passport", "visa", "id", "35x45", "2x2", "background", "print")),
-        Tool(ToolIds.IMAGE_ROUND, "Round corners", "Give an image rounded corners", Icons.Rounded.RoundedCorner, ToolCategory.IMAGE, keywords = listOf("circle", "radius")),
-        Tool(ToolIds.IMAGE_COLOR_PICKER, "Color picker", "Pick colors from a photo", Icons.Rounded.Colorize, ToolCategory.IMAGE, keywords = listOf("hex", "rgb", "palette")),
-        Tool(ToolIds.IMAGE_WATERMARK, "Watermark image", "Stamp text or a logo on a photo", Icons.AutoMirrored.Rounded.BrandingWatermark, ToolCategory.IMAGE, keywords = listOf("logo", "text")),    )
+        Tool(ToolIds.IMAGE_ROUND, "Round corners", "Give an image rounded corners", Icons.Rounded.RoundedCorner, ToolCategory.IMAGE, available = true, keywords = listOf("circle", "radius")),
+        Tool(ToolIds.IMAGE_COLOR_PICKER, "Color picker", "Pick colors from a photo", Icons.Rounded.Colorize, ToolCategory.IMAGE, available = true, keywords = listOf("hex", "rgb", "palette")),
+        Tool(ToolIds.IMAGE_WATERMARK, "Watermark image", "Stamp text or a logo on a photo", Icons.AutoMirrored.Rounded.BrandingWatermark, ToolCategory.IMAGE, available = true, keywords = listOf("logo", "text")),    )
 
     fun find(id: String?): Tool? = all.firstOrNull { it.id == id }
 
@@ -144,14 +144,20 @@ object ToolRegistry {
         hiddenTools: Set<String> = emptySet(),
         tools: List<Tool> = all,
     ): List<Tool> {
-        val q = query.trim().lowercase()
-        return tools.filter { tool ->
+        // Every word must appear somewhere (title, description, keywords or category), so
+        // "reverse video" finds Video › Reverse. Tools whose title matches come first.
+        val words = query.trim().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        val visible = tools.filter { tool ->
             tool.category.name !in hiddenCategories && tool.id !in hiddenTools &&
-                (category == null || tool.category == category) &&
-                (q.isEmpty() ||
-                    tool.title.lowercase().contains(q) ||
-                    tool.description.lowercase().contains(q) ||
-                    tool.keywords.any { it.contains(q) })
+                (category == null || tool.category == category)
         }
+        if (words.isEmpty()) return visible
+        return visible.filter { tool ->
+            val text = buildString {
+                append(tool.title).append(' ').append(tool.description).append(' ').append(tool.category.title)
+                tool.keywords.forEach { append(' ').append(it) }
+            }.lowercase()
+            words.all { it in text }
+        }.sortedBy { tool -> words.count { it !in tool.title.lowercase() } }
     }
 }

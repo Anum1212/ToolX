@@ -13,6 +13,8 @@ junit = "4.13.2"
 mlkitSelfie = "16.0.0-beta6"
 # Android port of Apache PDFBox (Apache 2.0): edit, merge, split, encrypt, extract text.
 pdfbox = "2.0.27.0"
+# Audio tags (MP3/ID3, M4A, FLAC, OGG); LGPL; has an Android mode that avoids javax.imageio.
+jaudiotagger = "3.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,7 +37,8 @@ media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "medi
 
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
-pdfbox-android = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
+jaudiotagger = { group = "net.jthink", name = "jaudiotagger", version.ref = "jaudiotagger" }
+pdfbox-android ={ group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
 mlkit-segmentation-selfie ={ group = "com.google.mlkit", name = "segmentation-selfie", version.ref = "mlkitSelfie" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }

@@ -10,16 +10,17 @@ A personal Android toolbox for video, audio and image tasks. Everything runs on 
 | Compress (1080p / 720p / 480p / 360p) | ✅ | Cut a section | ✅ | Compress & convert (JPG / PNG / WebP) | ✅ |
 | Mute | ✅ | Merge | ✅ | Rotate & flip | ✅ |
 | Extract audio (M4A) | ✅ | Speed (keep or change pitch) | ✅ | Crop | ✅ |
-| Volume (0–300%) | ✅ | Volume (0–300%) | ✅ | Round corners | planned |
-| Crop & rotate | ✅ | Convert (MP3 needs FFmpeg) | planned | Color picker | planned |
-| Split | ✅ | Reverse | planned | Watermark | planned |
-| Merge | ✅ | Noise reduction (FFmpeg) | planned | Images to PDF | planned |
-| Speed | ✅ | Edit tags | planned | Remove background (people) | ✅ |
-| | | | | Passport photo (+ 4×6 print sheet) | ✅ |
-| Reverse, Video to GIF (FFmpeg) | planned | | | | |
-| Convert format, Add music, Watermark | planned | | | | |
+| Volume (0–300%) | ✅ | Volume (0–300%) | ✅ | Round corners / circle (PNG) | ✅ |
+| Crop & rotate | ✅ | Convert (M4A / WAV / FLAC / Opus) | ✅ | Color picker (HEX, RGB, HSL, CMYK, palette) | ✅ |
+| Split | ✅ | Reverse | ✅ | Watermark (text or logo, tiled) | ✅ |
+| Merge | ✅ | Noise reduction (with before/after preview) | ✅ | Remove background (people) | ✅ |
+| Speed | ✅ | Edit tags (title, artist, album, cover…) | ✅ | Passport photo (+ 4×6 print sheet) | ✅ |
+| Reverse (up to 60 s, with sound) | ✅ | | | | |
+| Video to GIF | ✅ | | | | |
+| Convert (H.264 / H.265 MP4) | ✅ | | | | |
+| Add music, Watermark | ✅ | | | | |
 
-Audio exports are AAC in `.m4a`.
+Audio exports are AAC in `.m4a` unless Convert picks another format. There's no MP3 output (Android has no MP3 encoder) and no MKV/AVI output; everything is done with the platform codecs, no FFmpeg.
 
 ### PDF (all offline; saved to `Documents/ToolX`)
 

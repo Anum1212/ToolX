@@ -6,7 +6,7 @@
 gradle --console=plain :app:testDebugUnitTest
 ```
 
-Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 131 tests in `app/src/test/`, and every expected value comes from an independent reference: SI/NIST unit definitions, standard amortization tables, and known math results.
+Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 143 tests in `app/src/test/`, and every expected value comes from an independent reference: SI/NIST unit definitions, standard amortization tables, and known math results.
 
 | Suite | Covers |
 |---|---|
@@ -126,12 +126,31 @@ Found and fixed:
 
 Still visible: a thin dark fringe where the suit meets the curtain and the navy flag (same colour as the suit). A plain-wall passport shot is the easy case and wasn't the one tested here.
 
+## Former "coming soon" tools (emulator, 2026-11-21)
+
+Outputs were pulled to the PC and checked independently of the app where possible.
+
+- **Round corners:** rounded PNG 1280×1599 with transparent corners; circle mode 1280×1280.
+- **Color picker:** a tapped tie pixel gave #1D4B98 / rgb(29,75,152) / hsl(218,68%,35%) / cmyk(81%,51%,0%,40%), plus a 6-colour palette.
+- **Watermark image / video:** tiled text at full resolution; the video mark is burned in (reopened the output with the overlay cleared).
+- **Convert video:** H.265 output is hvc1 with the right duration. The emulator's software HEVC encoder can't make 720×1600 (or even 480×1066), and Media3 silently shrank the video to 180×400; the screen now warns when the encoder can't make the chosen size.
+- **Video to GIF:** 3 s at 10 fps → 320×710, 31 frames, decoded by Windows (System.Drawing) with clean colours.
+- **Add music:** 2 sequences (video + looping song); the output's soundtrack, extracted and converted to WAV, has the song for the full 6 s.
+- **Reverse video:** 576×1280 H.264 + AAC, 6.1 s. A GIF of the output starts on the frame the original ends on.
+- **Convert audio:** WAV, FLAC and Opus (OGG) outputs converted back to WAV in-app: FLAC is bit-identical to the WAV, Opus decodes at 48 kHz with the same RMS and pitch.
+- **Reverse audio:** on a test file of 1 s hiss then a loud tone, the reversed copy starts loud (RMS 0.21) and ends on the hiss (0.03).
+- **Noise reduction:** same file, strength 60%: hiss RMS 0.035 → 0.004 (≈ −19 dB), tone RMS 0.215 → 0.209, and the zero-crossing pitch estimate goes from 981 Hz (hiss-polluted) to exactly 440 Hz. Measured on the preview WAVs pulled from the app cache (`run-as`).
+- **Edit tags:** not device-tested yet.
+
 ## Bugs found by this testing (all fixed)
 
 1. Title Case capitalized letters after apostrophes ("Don'T").
 2. Date fields were invisible to screen readers: a tap overlay hid their label and value.
 3. The Ruler's readout overlapped its help text near the middle of the screen.
-4. *(Earlier)* Audio Speed "keep pitch" didn't keep pitch, and edge slider handles triggered the Back gesture.
+4. Searching "reverse video" found nothing: the whole phrase had to sit in one field. Search now matches every word across title, description, keywords and category, title matches first.
+5. H.265 Convert silently shrank videos the encoder couldn't make (see above); now warned.
+6. Hints under export buttons said "Saved as …" before anything was saved; now "Saves as …".
+7. *(Earlier)* Audio Speed "keep pitch" didn't keep pitch, and edge slider handles triggered the Back gesture.
 
 ## Not covered
 

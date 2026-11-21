@@ -7,8 +7,15 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
 - **Personal use.** No ads, no paywall, no analytics, no network. Files never leave the phone.
 - **Inspirations:** Tooly (com.yousx.thetoolsapp) provides the structure: a category grid, search, the same screen layout for every tool, offline. Vaux (com.vaux.vaux_editor) provides the video/image tool set. Do better than both: free exports have no watermark and there's no consent-screen nonsense.
 - **minSdk 29 (Android 10).** This means no storage permissions: input comes from the system photo picker, output goes through MediaStore to `Movies/ToolX`, `Pictures/ToolX` and `Music/ToolX`.
-- **Media3 Transformer for video and audio, no FFmpeg yet.** Add FFmpeg later for video Reverse, Video to GIF, MP3 output, noise reduction and MKV/AVI, which Media3 can't do. Its 20–30 MB is acceptable for personal use. `ffmpeg-kit` was retired in 2025, so the options are a community fork or our own build.
-- **Audio input** uses the document picker (`OpenDocument`, `audio/*`), because the photo picker can't show audio. Read access is kept with `takePersistableUriPermission`. Audio output is always AAC in `.m4a`, saved to `Music/ToolX`.
+- **Media3 Transformer plus platform codecs, no FFmpeg.** The former "FFmpeg" tools were built natively on 2026-11-21 (user: "complete all coming soon features"):
+  - **Video Reverse** (`video/VideoFrames.kt`): frames via `MediaMetadataRetriever.getFramesAtIndex` in batches of 8 → JPEGs in cache → AVC encoder input Surface in reverse with restamped PTS; audio decoded, reversed, AAC-encoded. Capped at 60 s and 1280 px long side.
+  - **Video to GIF** (`video/GifEncoder.kt`): own GIF89a writer, per-frame median-cut palette (`Quantizer`) and `Lzw`; `GifEncoderTest` round-trips LZW with an independent giflib-style decoder.
+  - **Convert video**: MP4 only, H.264 or H.265 (`VideoExtrasEngine.supportsSize` warns when no encoder accepts the size: Media3 would silently shrink it, as the emulator's HEVC encoder did to 180×400).
+  - **Audio** (`audio/AudioCodec.kt`, `AudioDsp.kt`): decode to 16-bit PCM (≤20 min), then M4A (via WAV + Transformer), WAV, FLAC (MediaCodec, "fLaC" header ensured) or Opus (48 kHz, ≤2 ch, OGG muxer). Noise reduction is spectral gating (FFT 2048, hop ¼, noise profile from the quietest 10%, three passes to bound memory).
+  - **Edit tags** uses jaudiotagger 3.0.1 (`TagOptionSingleton.isAndroid = true`) on a cache copy and saves a tagged copy; the original is never touched.
+  - Still impossible: MP3 output (Android has no MP3 encoder) and MKV/AVI output. Revisit FFmpeg only if those matter; `ffmpeg-kit` was retired in 2025.
+- **Audio input** uses the document picker (`OpenDocument`, `audio/*`), because the photo picker can't show audio. Read access is kept with `takePersistableUriPermission`. Audio output is AAC in `.m4a` (Convert audio can pick WAV/FLAC/Opus), saved to `Music/ToolX`.
+- **Search** matches every typed word anywhere in title, description, keywords or category name ("reverse video" → Video › Reverse video), title matches first.
 - **No DI framework** (no Hilt). Keep it simple.
 - **Everyday tools** follow Tooly's catalogue: Text, Units, Calculate, General, Finance, Random and Developer categories.
   - Each family is a `ToolModule` object (`tools/<family>/…Tools.kt`) that owns its `Tool` entries and its screens map. `ToolRegistry.modules` lists them, and `ToolXNavHost` falls through to `ToolRegistry.moduleScreen(id)`.
@@ -109,9 +116,9 @@ adb shell content call --method scan_volume --uri content://media --arg external
     - All 58 were opened on the emulator with no crashes.
     - Spot-checked results: EMI, unit values, Roman numerals, number to words, base conversion, fraction, prime, factorial, and the wheel winner matching the pointer.
     - Compass, Level and Ruler need a real phone to judge accuracy.
-  - The other tools in `ToolRegistry` show "Soon".
+  - Former "Soon" tools (2026-11-21): Video Reverse, Video to GIF, Convert video, Add music, Watermark video; Audio Convert, Reverse, Noise reduction, Edit tags; Image Round corners, Color picker, Watermark. No tool shows "Soon" any more. All but Edit tags were export-tested (TESTING.md).
 - **Tests:** see `TESTING.md`.
-  - 131 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
+  - 143 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
   - The calc/finance helpers are `internal` top-level functions (`averageStats`, `emi`, `loanSchedule`, `futureValue`, `factorize`, …) so tests can reach them. Keep new logic out of composables, and add a test with an independently known expected value.
   - On the emulator, sensors can be faked with `adb emu sensor set acceleration x:y:z` and `adb emu sensor set magnetic-field x:y:z`.
 - **Export-tested on the emulator (2026-11-21):**

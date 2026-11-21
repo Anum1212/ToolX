@@ -21,6 +21,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -69,6 +70,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.mlkit.segmentation.selfie)
     implementation(libs.pdfbox.android)
+    implementation(libs.jaudiotagger)
 
     testImplementation(libs.junit)
 }

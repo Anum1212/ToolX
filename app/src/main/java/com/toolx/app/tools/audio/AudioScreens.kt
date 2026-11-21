@@ -43,11 +43,11 @@ import com.toolx.app.ui.common.rememberDisplayName
 import com.toolx.app.ui.common.rememberMediaPicker
 
 /** How the preview player should sound, so it matches the export. */
-private data class PreviewTuning(val seekToMs: Long? = null, val speed: Float = 1f, val pitch: Float = 1f, val volume: Float = 1f)
+internal data class PreviewTuning(val seekToMs: Long? = null, val speed: Float = 1f, val pitch: Float = 1f, val volume: Float = 1f)
 
 /** Shared layout for single-file audio tools: pick → player → options → export → result. */
 @Composable
-private fun AudioToolFrame(
+internal fun AudioToolFrame(
     tool: Tool,
     onBack: () -> Unit,
     exportLabel: String,
@@ -55,6 +55,9 @@ private fun AudioToolFrame(
     tuning: PreviewTuning = PreviewTuning(),
     onNewFile: () -> Unit = {},
     options: @Composable (durationMs: Long?) -> Unit = {},
+    /** Like [options] but also given the picked file (for previews that process it). */
+    fileOptions: (@Composable (uri: Uri, durationMs: Long?) -> Unit)? = null,
+    savedNote: String? = "Saves as M4A (AAC) to Music/ToolX.",
     task: suspend (context: Context, uri: Uri, durationMs: Long?, onProgress: (Float) -> Unit) -> SavedMedia,
 ) {
     val vm: ProcessingViewModel = viewModel()
@@ -85,15 +88,14 @@ private fun AudioToolFrame(
             onChange = pick,
         )
         options(duration)
+        fileOptions?.invoke(current, duration)
         ExportButton(exportLabel, state, enabled = canExport(duration)) {
             val d = duration
             vm.run { ctx, progress -> task(ctx, current, d, progress) }
         }
-        Text(
-            "Saved as M4A (AAC) in Music/ToolX.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        savedNote?.let {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         ProcessingStatus(state, onCancel = vm::cancel)
     }
 }

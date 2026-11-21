@@ -29,4 +29,15 @@ class ToolVisibilityTest {
         assertTrue(ToolRegistry.search("combine", null, hiddenTools = setOf("a"), tools = tools).isEmpty())
         assertEquals(listOf("a"), ToolRegistry.search("combine", null, tools = tools).map { it.id })
     }
+
+    @Test fun wordsCanComeFromDifferentFields() {
+        // "trim video": title + category. Word order and case don't matter.
+        assertEquals(listOf("c"), ToolRegistry.search("trim video", null, tools = tools).map { it.id })
+        assertEquals(listOf("c"), ToolRegistry.search("Video  TRIM", null, tools = tools).map { it.id })
+        // Every word must match somewhere.
+        assertTrue(ToolRegistry.search("trim pdf", null, tools = tools).isEmpty())
+        // Title matches rank first: "pages" is only in Split's description, "pdf" in both titles.
+        assertEquals(listOf("a", "b"), ToolRegistry.search("pdf", null, tools = tools).map { it.id })
+        assertEquals(listOf("b"), ToolRegistry.search("pdf pages", null, tools = tools).map { it.id })
+    }
 }
