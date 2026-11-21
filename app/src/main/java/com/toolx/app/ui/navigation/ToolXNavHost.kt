@@ -29,25 +29,37 @@ import com.toolx.app.tools.video.VideoExtractAudioScreen
 import com.toolx.app.tools.video.VideoMuteScreen
 import com.toolx.app.tools.video.VideoTrimScreen
 import com.toolx.app.ui.common.ComingSoonScreen
+import com.toolx.app.core.AppSettings
 import com.toolx.app.ui.home.HomeScreen
+import com.toolx.app.ui.settings.SettingsScreen
+import com.toolx.app.ui.theme.CategoryTheme
 
 private const val HOME = "home"
 private const val TOOL = "tool/{id}"
+private const val SETTINGS = "settings"
 
 @Composable
 fun ToolXNavHost() {
     val nav = rememberNavController()
     NavHost(navController = nav, startDestination = HOME) {
         composable(HOME) {
-            HomeScreen(onOpenTool = { nav.navigate("tool/${it.id}") })
+            HomeScreen(
+                onOpenTool = { tool ->
+                    AppSettings.recordRecent(tool)
+                    nav.navigate("tool/${tool.id}")
+                },
+                onOpenSettings = { nav.navigate(SETTINGS) },
+            )
         }
+        composable(SETTINGS) { SettingsScreen(onBack = { nav.popBackStack() }) }
         composable(TOOL) { entry ->
             val tool = ToolRegistry.find(entry.arguments?.getString("id"))
             val back: () -> Unit = { nav.popBackStack() }
             if (tool == null) {
                 LaunchedEffect(Unit) { back() }
             } else {
-                ToolScreen(tool, back)
+                // Each tool screen takes its category's colour (buttons, chips, sliders).
+                CategoryTheme(tool.category) { ToolScreen(tool, back) }
             }
         }
     }

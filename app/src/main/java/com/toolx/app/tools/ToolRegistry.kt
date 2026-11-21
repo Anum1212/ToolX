@@ -131,10 +131,21 @@ object ToolRegistry {
 
     fun find(id: String?): Tool? = all.firstOrNull { it.id == id }
 
-    fun search(query: String, category: ToolCategory?): List<Tool> {
+    /**
+     * Tools matching [query] (title, description or keywords) in [category] (null = all),
+     * minus anything the user hid: whole categories by name, or single tools by id.
+     */
+    fun search(
+        query: String,
+        category: ToolCategory?,
+        hiddenCategories: Set<String> = emptySet(),
+        hiddenTools: Set<String> = emptySet(),
+        tools: List<Tool> = all,
+    ): List<Tool> {
         val q = query.trim().lowercase()
-        return all.filter { tool ->
-            (category == null || tool.category == category) &&
+        return tools.filter { tool ->
+            tool.category.name !in hiddenCategories && tool.id !in hiddenTools &&
+                (category == null || tool.category == category) &&
                 (q.isEmpty() ||
                     tool.title.lowercase().contains(q) ||
                     tool.description.lowercase().contains(q) ||

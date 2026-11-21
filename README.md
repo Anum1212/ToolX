@@ -46,6 +46,15 @@ Not built, by decision: Currency (needs live exchange rates, which conflicts wit
 
 Saved files go to `Movies/ToolX`, `Pictures/ToolX`, `Music/ToolX` and `Documents/ToolX`.
 
+### Look and settings
+
+- Every category has its own colour, used on its tiles and throughout its tools.
+- 25 themes: System, Light, Dark, AMOLED, Material You (wallpaper), Nord, One Dark Pro, plus 10 light and 10 dark themes based on popular schemes (Catppuccin, Gruvbox, Solarized, Dracula, Tokyo Night, Rosé Pine, Everforest…).
+- Settings can hide whole categories or single tools, and hidden items also disappear from search.
+- Swipe left and right between Recent, All and each category. The ☰ menu jumps anywhere and opens Settings.
+- A Recent page shows the tools you've used lately.
+- Search sits at the bottom, within thumb reach, and covers every category.
+
 ## Stack
 
 - Kotlin, Jetpack Compose, Material 3 (light/dark)

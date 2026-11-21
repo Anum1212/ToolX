@@ -6,7 +6,7 @@
 gradle --console=plain :app:testDebugUnitTest
 ```
 
-Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 98 tests in `app/src/test/`, and every expected value comes from an independent reference: SI/NIST unit definitions, standard amortization tables, and known math results.
+Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 111 tests in `app/src/test/`, and every expected value comes from an independent reference: SI/NIST unit definitions, standard amortization tables, and known math results.
 
 | Suite | Covers |
 |---|---|
@@ -16,6 +16,9 @@ Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 98 tests in `app
 | `CalcMathTest` (7) | gcd/aspect ratio, fractions and mixed numbers, decimal → fraction (π ≈ 355/113), primes (including a Carmichael number), factorization, durations, averages |
 | `FinanceMathTest` (4) | EMI (e.g. 200k at 7.5% over 30 years = 1,398.43), schedule totals, future value of a lump sum and SIP |
 | `FormatTest` (4) | Number formatting and parsing |
+| `ThemeCatalogueTest` (8) | Contrast maths (incl. the known 4.54:1 #767676), 10 light + 10 dark themes, one distinct colour per category in every theme, readable text, category colours and buttons in every theme, System/unknown-id fallback |
+| `RecentsTest` (2) | Recent tools: newest first, no duplicates, capped at 12 |
+| `ToolVisibilityTest` (3) | Hidden categories and tools disappear from the list and from search |
 | `PdfOpsTest` (11) | Page ranges (incl. open-ended and invalid), split groups, page labels, visual↔PDF coordinates for every /Rotate, crop mapping, anchors, content bounds (auto-trim), image page layout, downscale targets, text → Markdown |
 | `MaskOpsTest` (14) | Mask alpha ramp, head finding (step shoulders, gradually sloping shoulders, a stray blob above the head), passport crop proportions and clamping, box mean, guided filter removing a 6 px overshoot (including navy vs dark red with equal brightness), bilinear resampling, 300 dpi sizes, print-sheet grid, hex colours |
 
@@ -45,6 +48,23 @@ Real values were typed into the actual screens, and the displayed results were c
   - Level: flat, a 10° tilt and a 30° tilt.
   - Compass: settles on N 0°, E 90°, S 180° and W 270° (3–6 s on the emulator).
 - **Ruler:** cm and inches agree with each other and with the 420 dpi screen.
+
+## UI and themes (emulator, 2026-11-21)
+
+- **Default (System, light):** category-coloured tiles and chips, no cyan, search at the bottom, Tools / Settings tabs.
+- **Nord, Gruvbox Light and Catppuccin Mocha** applied live. Status-bar icons flip correctly for dark and light themes. Tool screens take their category's colour (Split PDF in Nord purple, Text cases in Catppuccin blue).
+- **Search with the keyboard open:** the field sits on the keyboard and the tab bar hides.
+- **Hiding:** turning Video off removes its chip, section and search results. Hiding Trim audio shows "8 of 9 tools", and both settings survive an app restart. "Show all" restores everything.
+- **Bug found and fixed:** a new search kept the old scroll position and hid the top matches.
+- **Swipe, Recent and menu** (revised layout):
+  - Swiping left from All goes to Video, with the chip row following.
+  - After opening Merge then Trim, Recent lists Trim first, then Merge, with category labels.
+  - The ☰ drawer lists all pages with the current one highlighted. Tapping PDF jumps to the PDF page.
+  - Settings opens with a back arrow and Back returns to the same page.
+  - Searching "merge" finds 4 tools across categories, and Back clears the search.
+  - No crashes logged.
+
+Not covered: all 25 themes on the device (the palettes themselves are checked by unit tests), Material You on a phone with a real wallpaper, and tablets or landscape.
 
 ## PDF tools (emulator, 2026-11-21)
 

@@ -2,6 +2,7 @@ package com.toolx.app.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -9,81 +10,121 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
+import com.toolx.app.tools.ToolCategory
 
-private val Violet10 = Color(0xFF1B0563)
-private val Violet20 = Color(0xFF2F1590)
-private val Violet30 = Color(0xFF4628B8)
-private val Violet40 = Color(0xFF5B3FD9)
-private val Violet80 = Color(0xFFC8BFFF)
-private val Violet90 = Color(0xFFE5DEFF)
+/** The palette in use, for category colours and anything Material's scheme doesn't cover. */
+val LocalAppTheme = staticCompositionLocalOf { Themes.Light }
 
-private val Teal10 = Color(0xFF002020)
-private val Teal20 = Color(0xFF003737)
-private val Teal30 = Color(0xFF004F4F)
-private val Teal40 = Color(0xFF00696A)
-private val Teal80 = Color(0xFF4CDADB)
-private val Teal90 = Color(0xFF6FF7F7)
-
-private val Coral10 = Color(0xFF3A0B00)
-private val Coral20 = Color(0xFF5E1700)
-private val Coral30 = Color(0xFF842500)
-private val Coral40 = Color(0xFFA93800)
-private val Coral80 = Color(0xFFFFB59C)
-private val Coral90 = Color(0xFFFFDBCF)
-
-private val LightColors = lightColorScheme(
-    primary = Violet40,
-    onPrimary = Color.White,
-    primaryContainer = Violet90,
-    onPrimaryContainer = Violet10,
-    secondary = Teal40,
-    onSecondary = Color.White,
-    secondaryContainer = Teal90,
-    onSecondaryContainer = Teal10,
-    tertiary = Coral40,
-    onTertiary = Color.White,
-    tertiaryContainer = Coral90,
-    onTertiaryContainer = Coral10,
-    background = Color(0xFFFCF8FF),
-    surface = Color(0xFFFCF8FF),
-)
-
-private val DarkColors = darkColorScheme(
-    primary = Violet80,
-    onPrimary = Violet20,
-    primaryContainer = Violet30,
-    onPrimaryContainer = Violet90,
-    secondary = Teal80,
-    onSecondary = Teal20,
-    secondaryContainer = Teal30,
-    onSecondaryContainer = Teal90,
-    tertiary = Coral80,
-    onTertiary = Coral20,
-    tertiaryContainer = Coral30,
-    onTertiaryContainer = Coral90,
-    background = Color(0xFF131218),
-    surface = Color(0xFF131218),
-)
+/** Builds a full Material 3 scheme from a palette; every "on" colour is checked for contrast. */
+fun AppTheme.toColorScheme(): ColorScheme {
+    val p = readable(primary, background, 3f)
+    val container = tint(p, surface, dark)
+    val step = { t: Float -> lerp(background, surfaceHigh, t) }
+    val error = readable(accents[ToolCategory.VIDEO.ordinal], background, 3f)
+    val base = if (dark) darkColorScheme() else lightColorScheme()
+    return base.copy(
+        primary = p,
+        onPrimary = onColor(p),
+        primaryContainer = container,
+        onPrimaryContainer = text,
+        inversePrimary = p,
+        // Selected chips, slider tracks, cards: a soft tint of the primary colour (no stray cyan).
+        secondary = p,
+        onSecondary = onColor(p),
+        secondaryContainer = container,
+        onSecondaryContainer = text,
+        tertiary = readable(accents[ToolCategory.CALC.ordinal], background, 3f),
+        onTertiary = onColor(readable(accents[ToolCategory.CALC.ordinal], background, 3f)),
+        tertiaryContainer = tint(accents[ToolCategory.CALC.ordinal], surface, dark),
+        onTertiaryContainer = text,
+        background = background,
+        onBackground = text,
+        surface = background,
+        onSurface = text,
+        surfaceVariant = surfaceHigh,
+        onSurfaceVariant = muted,
+        surfaceTint = p,
+        inverseSurface = text,
+        inverseOnSurface = background,
+        error = error,
+        onError = onColor(error),
+        errorContainer = tint(error, surface, dark),
+        onErrorContainer = text,
+        outline = outline,
+        outlineVariant = lerp(outline, background, 0.4f),
+        scrim = Color.Black,
+        surfaceBright = step(0.6f),
+        surfaceDim = background,
+        surfaceContainerLowest = background,
+        surfaceContainerLow = surface,
+        surfaceContainer = lerp(surface, surfaceHigh, 0.4f),
+        surfaceContainerHigh = lerp(surface, surfaceHigh, 0.7f),
+        surfaceContainerHighest = surfaceHigh,
+    )
+}
 
 /**
- * App theme. Follows the system light/dark setting. Set [dynamicColor] to true to
- * use the wallpaper-based Material You palette on Android 12+ instead of the brand colors.
+ * App theme. [themeId] is a palette id, [SYSTEM_THEME] (follows the phone's light/dark mode)
+ * or [DYNAMIC_THEME] (Material You wallpaper colours on Android 12+; category colours then
+ * come from the default palettes).
  */
 @Composable
-fun ToolXTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
-    content: @Composable () -> Unit,
-) {
-    val colors = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+fun ToolXTheme(themeId: String, content: @Composable () -> Unit) {
+    val systemDark = isSystemInDarkTheme()
+    val palette = Themes.resolve(themeId, systemDark)
+    val context = LocalContext.current
+    val scheme = remember(themeId, systemDark) {
+        if (themeId == DYNAMIC_THEME && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (systemDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        } else {
+            palette.toColorScheme()
         }
-        darkTheme -> DarkColors
-        else -> LightColors
     }
-    MaterialTheme(colorScheme = colors, typography = Typography(), content = content)
+    CompositionLocalProvider(LocalAppTheme provides palette) {
+        MaterialTheme(colorScheme = scheme, typography = Typography(), content = content)
+    }
+}
+
+/** A category's colour, made readable on the current background. */
+@Composable
+fun categoryColor(category: ToolCategory): Color {
+    val t = LocalAppTheme.current
+    return readable(t.accent(category), MaterialTheme.colorScheme.surfaceContainerLow, 3f)
+}
+
+/** Soft container tint for a category (tile backgrounds, selected chips). */
+@Composable
+fun categoryContainer(category: ToolCategory): Color {
+    val t = LocalAppTheme.current
+    return tint(t.accent(category), MaterialTheme.colorScheme.surfaceContainerLow, t.dark)
+}
+
+/**
+ * Re-themes a tool screen in its category's colour: buttons, chips, sliders and highlights
+ * all take that colour, so each category looks like its own space.
+ */
+@Composable
+fun CategoryTheme(category: ToolCategory, content: @Composable () -> Unit) {
+    val base = MaterialTheme.colorScheme
+    val t = LocalAppTheme.current
+    val accent = readable(t.accent(category), base.background, 3f)
+    val container = tint(accent, base.surfaceContainerLow, t.dark)
+    val scheme = base.copy(
+        primary = accent,
+        onPrimary = onColor(accent),
+        primaryContainer = container,
+        onPrimaryContainer = base.onSurface,
+        secondary = accent,
+        onSecondary = onColor(accent),
+        secondaryContainer = container,
+        onSecondaryContainer = base.onSurface,
+        surfaceTint = accent,
+    )
+    MaterialTheme(colorScheme = scheme, typography = MaterialTheme.typography, content = content)
 }

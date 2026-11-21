@@ -15,6 +15,20 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
   - Pure logic lives in `TextOps` / `GeneralOps` so it can be unit-tested.
   - Shared form pieces are in `ui/common/Forms.kt`: `NumberField`, `Dropdown`, `DateField`, `ResultCard` (tap a row to copy it), `BigResult`, `ToggleChip`, `ChipRow`, and `fmt`/`money`.
   - These tools compute live as you type. There's no Run button, which matches the "feedback before saving" rule.
+- **UI, themes and settings** were redone on 2026-11-21 at the user's request ("I don't like that cyan"; one unique colour per category).
+  - **Themes** (`ui/theme/Themes.kt`): an `AppTheme` palette has `accents`, one colour per `ToolCategory` in enum order. Adding a category means adding an accent to *every* theme; `ThemeCatalogueTest` enforces that.
+  - **The catalogue:** System, Light, Dark, AMOLED, Material You (API 31+), Nord, One Dark Pro, 10 light themes and 10 dark ones (Catppuccin, Gruvbox, Solarized, Rosé Pine, Everforest, GitHub, Ayu, Tokyo Night, Nord Light, One Light / Mocha, Dracula, Monokai Pro, Kanagawa, Palenight…).
+  - **Building the scheme:** `AppTheme.toColorScheme()` builds the whole Material scheme. `secondaryContainer` is a soft tint of the primary colour; the old Teal90 there was the cyan the user disliked.
+  - **Readability:** colours are made readable with `readable()`, which nudges them to 3:1 contrast. The tests check every theme: body text ≥ 4.5:1, category colours ≥ 3:1, and category colours distinct from each other.
+  - **Category colours everywhere:** `CategoryTheme(category)` wraps every tool screen in ToolXNavHost, so buttons, chips and sliders take the category's colour. Home tiles use `categoryColor` / `categoryContainer`.
+  - **Settings** (`core/AppSettings.kt`): SharedPreferences exposed as Compose state, holding the theme id, hidden categories (by enum name) and hidden tools (by id). `ToolRegistry.search` filters hidden items, which also removes them from search. The status-bar icon style follows the app theme, not the phone's setting.
+  - **Home** (revised the same day at the user's request) is a `HorizontalPager` with pages Recent, All, then one per visible category; you swipe left and right between them.
+    - The chip row mirrors the pager: tapping a chip jumps to its page, and the row auto-scrolls to follow a swipe.
+    - The current page is remembered by key, so it survives rotation and categories being hidden.
+    - **Recent:** `AppSettings.recordRecent` is called from ToolXNavHost on every tool open. It keeps up to 12, newest first; `pushRecent` is unit-tested.
+    - **Search:** the only thing at the bottom (no tab bar). It searches every category and replaces the pager with results while there is text. It sits above the keyboard via the union of the navigation-bar and keyboard insets; padding with both would leave a gap. Back clears it.
+    - **Burger menu:** the ☰ beside the title opens a `ModalNavigationDrawer` with Recent, All tools, each category, and Settings. Drawer swipe gestures are on only while it's open, so they don't fight the pager.
+    - **Settings** is its own nav route ("settings") with a back arrow.
 - **PDF tools** (`tools/pdf/`, a `ToolModule` like the everyday tools) were added 2026-11-21, following iLovePDF's tool list, offline only.
   - **Libraries:** PdfBox-Android 2.0.27.0 does editing (call `PdfEngine.init` first; it's lazy). The platform `PdfRenderer` (pdfium) renders pages; it applies `/Rotate`, so its bitmaps are what the reader sees.
   - **Files:** every operation works on a cache copy (`PdfEngine.localCopy`, keyed by Uri + size). Output goes to `Documents/ToolX` through the MediaStore Files collection (`MediaKind.DOCUMENT`).
@@ -88,7 +102,7 @@ adb shell content call --method scan_volume --uri content://media --arg external
     - Compass, Level and Ruler need a real phone to judge accuracy.
   - The other tools in `ToolRegistry` show "Soon".
 - **Tests:** see `TESTING.md`.
-  - 98 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
+  - 111 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
   - The calc/finance helpers are `internal` top-level functions (`averageStats`, `emi`, `loanSchedule`, `futureValue`, `factorize`, …) so tests can reach them. Keep new logic out of composables, and add a test with an independently known expected value.
   - On the emulator, sensors can be faked with `adb emu sensor set acceleration x:y:z` and `adb emu sensor set magnetic-field x:y:z`.
 - **Export-tested on the emulator (2026-11-21):**
