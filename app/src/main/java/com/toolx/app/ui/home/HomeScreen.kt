@@ -141,8 +141,9 @@ private fun CategoryChips(selected: ToolCategory?, onSelect: (ToolCategory?) -> 
 private fun ToolCard(tool: Tool, onClick: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     val (container, onContainer) = when (tool.category) {
-        ToolCategory.VIDEO -> colors.primaryContainer to colors.onPrimaryContainer
-        ToolCategory.IMAGE -> colors.tertiaryContainer to colors.onTertiaryContainer
+        ToolCategory.VIDEO, ToolCategory.TEXT, ToolCategory.FINANCE -> colors.primaryContainer to colors.onPrimaryContainer
+        ToolCategory.AUDIO, ToolCategory.UNITS, ToolCategory.RANDOM -> colors.secondaryContainer to colors.onSecondaryContainer
+        ToolCategory.IMAGE, ToolCategory.CALC, ToolCategory.GENERAL, ToolCategory.DEV -> colors.tertiaryContainer to colors.onTertiaryContainer
     }
     ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Column(

@@ -40,6 +40,11 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        // Pure-logic tests touch a few Android classes indirectly (e.g. icons); return defaults instead of throwing.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -62,6 +67,7 @@ dependencies {
     implementation(libs.media3.ui)
 
     implementation(libs.coil.compose)
+    implementation(libs.mlkit.segmentation.selfie)
 
     testImplementation(libs.junit)
 }

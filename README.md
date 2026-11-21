@@ -1,31 +1,49 @@
 # ToolX
 
-A personal Android toolbox for video and image tasks. Everything runs on the phone, with no network and no ads.
+A personal Android toolbox for video, audio and image tasks. Everything runs on the phone, with no network and no ads.
 
 ## Tools
 
-| Video | Status | Image | Status |
-|---|---|---|---|
-| Trim | ✅ | Resize | ✅ |
-| Compress (1080p / 720p / 480p / 360p) | ✅ | Compress & convert (JPG / PNG / WebP) | ✅ |
-| Mute | ✅ | Rotate & flip | ✅ |
-| Extract audio (M4A) | ✅ | Crop | planned |
-| Merge | planned | Round corners | planned |
-| Speed | planned | Color picker | planned |
-| Reverse | planned | Watermark | planned |
-| Video to GIF | planned | Images to PDF | planned |
-| Convert format | planned | | |
-| Add music | planned | | |
-| Watermark | planned | | |
+| Video | Status | Audio | Status | Image | Status |
+|---|---|---|---|---|---|
+| Trim | ✅ | Trim | ✅ | Resize | ✅ |
+| Compress (1080p / 720p / 480p / 360p) | ✅ | Cut a section | ✅ | Compress & convert (JPG / PNG / WebP) | ✅ |
+| Mute | ✅ | Merge | ✅ | Rotate & flip | ✅ |
+| Extract audio (M4A) | ✅ | Speed (keep or change pitch) | ✅ | Crop | ✅ |
+| Volume (0–300%) | ✅ | Volume (0–300%) | ✅ | Round corners | planned |
+| Crop & rotate | ✅ | Convert (MP3 needs FFmpeg) | planned | Color picker | planned |
+| Split | ✅ | Reverse | planned | Watermark | planned |
+| Merge | ✅ | Noise reduction (FFmpeg) | planned | Images to PDF | planned |
+| Speed | ✅ | Edit tags | planned | Remove background (people) | ✅ |
+| | | | | Passport photo (+ 4×6 print sheet) | ✅ |
+| Reverse, Video to GIF (FFmpeg) | planned | | | | |
+| Convert format, Add music, Watermark | planned | | | | |
+
+Audio exports are AAC in `.m4a`.
+
+### Everyday tools (all offline, results update as you type)
+
+| Category | Tools |
+|---|---|
+| Text (16) | Text cases, Find & replace, Sort lines, Text counter, Repeat, Remove white spaces / empty lines / duplicate lines / duplicate words / line breaks, Prefix/suffix, Number lines, Reverse text / lines / words, Add line breaks |
+| Units (12) | Length, Area, Mass, Temperature, Cooking, Time, Energy, Angle, Speed, Data, Data transfer, CSS units |
+| Calculate (11) | Percentage, Average, Proportion, Aspect ratio, Fraction simplifier, Decimal to fraction, Prime number, Exponent, Factorial, Age, Time calculator |
+| General (9) | Ruler, Morse code, Roman numerals, Number to words (incl. lakh/crore), Compass, Text ↔ bytes, Time zones, Level, Day counter |
+| Finance (4) | Loan EMI, Investment (lump sum + SIP), Bill splitter, Discount |
+| Random (5) | Lucky wheel, Flip a coin, Yes or no, Rock paper scissors, Roll dice |
+| Developer (1) | Base converter |
+
+Not built, by decision: Currency (needs live exchange rates, which conflicts with "no network") and a "Sound" unit converter.
 
 Saved files go to `Movies/ToolX`, `Pictures/ToolX` and `Music/ToolX`.
 
 ## Stack
 
 - Kotlin, Jetpack Compose, Material 3 (light/dark)
-- AndroidX Media3 Transformer for video (hardware encoders)
+- AndroidX Media3 Transformer for video and audio (hardware encoders)
 - Platform `ImageDecoder` / `Bitmap` for images, Coil for previews
-- System photo picker for input, MediaStore for output, so the app needs no storage permissions
+- ML Kit selfie segmentation (bundled model, on-device) for background removal; the manifest strips its INTERNET permission
+- System photo picker (images/video) and document picker (audio) for input, MediaStore for output, so the app needs no storage permissions
 - minSdk 29 (Android 10), targetSdk 35
 
 ## Getting started
@@ -42,17 +60,21 @@ Saved files go to `Movies/ToolX`, `Pictures/ToolX` and `Music/ToolX`.
 ```
 app/src/main/java/com/toolx/app/
 ├── MainActivity.kt
-├── core/            ProcessingViewModel (run/cancel/progress), MediaSaver, formatting
+├── core/            ProcessingViewModel (run/runAll/cancel/progress), MediaExport (Transformer runner), MediaSaver, formatting
 ├── tools/
 │   ├── ToolRegistry.kt   every tool + its id, icon, category, search keywords
 │   ├── video/            VideoEngine (Media3), VideoPreview (ExoPlayer), screens
-│   └── image/            ImageEngine (ImageDecoder), screens
+│   ├── audio/            AudioEngine (Media3), screens
+│   └── image/            ImageEngine (ImageDecoder), crop editor, screens
 └── ui/              theme, home grid, navigation, shared components
+                     (pickers, preview player, range picker, MergeFrame)
 ```
 
 ### Adding a tool
 
+For text, unit, calculator, general, finance, random or developer tools, add the `Tool` entry and its screen to that family's `ToolModule` object (e.g. `tools/text/TextTools.kt`). Registry and navigation pick it up automatically. For media tools:
+
 1. Add (or flip `available = true` on) its entry in `ToolRegistry`.
-2. Write the operation in `VideoEngine` / `ImageEngine` so it returns `SavedMedia`.
-3. Write a screen using `VideoToolFrame` / `ImageToolFrame`.
+2. Write the operation in `VideoEngine` / `AudioEngine` / `ImageEngine` so it returns `SavedMedia`.
+3. Write a screen using `VideoToolFrame` / `AudioToolFrame` / `ImageToolFrame` (or `MergeFrame` for multi-file tools).
 4. Map the id to the screen in `ToolXNavHost.ToolScreen`.

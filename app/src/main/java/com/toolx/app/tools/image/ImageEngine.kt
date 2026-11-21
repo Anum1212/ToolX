@@ -107,7 +107,38 @@ object ImageEngine {
             save(context, out, "rotated", format, 95)
         }
 
+    suspend fun crop(context: Context, uri: Uri, crop: CropRect, format: OutputFormat, quality: Int): SavedMedia =
+        withContext(Dispatchers.IO) {
+            val src = decode(context, uri)
+            // The rect is normalized, so it maps correctly even if decode() downsampled a huge photo.
+            val r = crop.pixelRegion(src.width, src.height)
+            val out = Bitmap.createBitmap(src, r.left, r.top, r.width(), r.height())
+            if (out !== src) src.recycle()
+            save(context, out, "cropped", format, quality)
+        }
+
     // ---------- live preview ----------
+
+    /**
+     * Crops the working copy and renders it like [renderPreview], so the estimate
+     * reflects the real output dimensions of the cropped region.
+     */
+    suspend fun renderCropPreview(
+        working: Bitmap,
+        original: Size,
+        crop: CropRect,
+        format: OutputFormat,
+        quality: Int,
+    ): ImagePreviewResult = withContext(Dispatchers.Default) {
+        val r = crop.pixelRegion(working.width, working.height)
+        val piece = Bitmap.createBitmap(working, r.left, r.top, r.width(), r.height())
+        try {
+            val target = crop.pixelSize(original)
+            renderPreview(piece, target, target.width, target.height, format, quality)
+        } finally {
+            if (piece !== working) piece.recycle()
+        }
+    }
 
     /**
      * Decodes a bounded "working copy" once per picked image. Previews are rendered
@@ -180,9 +211,10 @@ object ImageEngine {
 
     private fun source(context: Context, uri: Uri) = ImageDecoder.createSource(context.contentResolver, uri)
 
-    private fun decode(context: Context, uri: Uri, targetSize: Size? = null): Bitmap =
+    internal fun decode(context: Context, uri: Uri, targetSize: Size? = null, mutable: Boolean = false): Bitmap =
         ImageDecoder.decodeBitmap(source(context, uri)) { decoder, info, _ ->
             decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE)
+            decoder.isMutableRequired = mutable
             if (targetSize != null) {
                 decoder.setTargetSize(targetSize.width, targetSize.height)
             } else {
@@ -193,7 +225,8 @@ object ImageEngine {
             }
         }
 
-    private fun save(context: Context, bitmap: Bitmap, tag: String, format: OutputFormat, quality: Int): SavedMedia {
+    /** Encodes and saves [bitmap] to Pictures/ToolX, then recycles it. */
+    internal fun save(context: Context, bitmap: Bitmap, tag: String, format: OutputFormat, quality: Int): SavedMedia {
         val toWrite = if (format == OutputFormat.JPEG && bitmap.hasAlpha()) flattenOnWhite(bitmap) else bitmap
         return try {
             MediaSaver.write(context, MediaSaver.fileName(tag, format.extension), format.mimeType, MediaKind.IMAGE) { out ->

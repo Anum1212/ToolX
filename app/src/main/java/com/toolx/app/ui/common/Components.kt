@@ -7,6 +7,8 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -55,17 +57,60 @@ import kotlinx.coroutines.withContext
 
 // ---------- Picking ----------
 
-enum class PickType { VIDEO, IMAGE }
+enum class PickType { VIDEO, IMAGE, AUDIO }
 
-/** Returns a function that opens the system photo picker. No permissions needed. */
+private fun visualRequest(type: PickType) = when (type) {
+    PickType.IMAGE -> PickVisualMediaRequest(PickVisualMedia.ImageOnly)
+    else -> PickVisualMediaRequest(PickVisualMedia.VideoOnly)
+}
+
+/** Keeps read access to a document-picker Uri across activity recreation. */
+private fun keepAccess(context: Context, uri: Uri) {
+    runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+}
+
+/**
+ * Returns a function that opens a system picker. Photos and videos use the photo
+ * picker; audio uses the document picker (the photo picker can't show audio).
+ * Neither needs a permission.
+ */
 @Composable
 fun rememberMediaPicker(type: PickType, onPicked: (Uri) -> Unit): () -> Unit {
-    val launcher = rememberLauncherForActivityResult(PickVisualMedia()) { uri -> uri?.let(onPicked) }
-    val request = when (type) {
-        PickType.VIDEO -> PickVisualMediaRequest(PickVisualMedia.VideoOnly)
-        PickType.IMAGE -> PickVisualMediaRequest(PickVisualMedia.ImageOnly)
+    val context = LocalContext.current
+    val visual = rememberLauncherForActivityResult(PickVisualMedia()) { uri -> uri?.let(onPicked) }
+    val document = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { keepAccess(context, it); onPicked(it) }
     }
-    return { launcher.launch(request) }
+    return {
+        if (type == PickType.AUDIO) document.launch(arrayOf("audio/*")) else visual.launch(visualRequest(type))
+    }
+}
+
+/** Like [rememberMediaPicker] but lets the user choose several files at once. */
+@Composable
+fun rememberMultiMediaPicker(type: PickType, onPicked: (List<Uri>) -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val visual = rememberLauncherForActivityResult(PickMultipleVisualMedia(MAX_MULTI_PICK)) { uris ->
+        if (uris.isNotEmpty()) onPicked(uris)
+    }
+    val document = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        uris.forEach { keepAccess(context, it) }
+        if (uris.isNotEmpty()) onPicked(uris)
+    }
+    return {
+        if (type == PickType.AUDIO) document.launch(arrayOf("audio/*")) else visual.launch(visualRequest(type))
+    }
+}
+
+private const val MAX_MULTI_PICK = 20
+
+/** The file's name as the provider reports it, e.g. "song.mp3". */
+@Composable
+fun rememberDisplayName(uri: Uri): String? {
+    val context = LocalContext.current
+    var name by remember(uri) { mutableStateOf<String?>(null) }
+    LaunchedEffect(uri) { name = withContext(Dispatchers.IO) { MediaSaver.displayNameOf(context, uri) } }
+    return name
 }
 
 /** Big tappable card shown before anything is selected. */
@@ -175,18 +220,35 @@ fun ProcessingStatus(state: ProcessingState, onCancel: () -> Unit) {
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val items = state.items
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Rounded.CheckCircle, contentDescription = null)
-                    Text("Saved", style = MaterialTheme.typography.titleSmall)
+                    Text(if (items.size == 1) "Saved" else "Saved ${items.size} files", style = MaterialTheme.typography.titleSmall)
                 }
-                Text(
-                    listOfNotNull(state.media.displayName, state.media.sizeBytes?.let(::formatBytes)).joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Text("In ${state.media.location}", style = MaterialTheme.typography.bodySmall)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { openMedia(context, state.media) }) { Text("Open") }
-                    OutlinedButton(onClick = { shareMedia(context, state.media) }) { Text("Share") }
+                if (items.size == 1) {
+                    val media = items.single()
+                    Text(
+                        listOfNotNull(media.displayName, media.sizeBytes?.let(::formatBytes)).joinToString(" · "),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text("In ${media.location}", style = MaterialTheme.typography.bodySmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = { openMedia(context, media) }) { Text("Open") }
+                        OutlinedButton(onClick = { shareMedia(context, listOf(media)) }) { Text("Share") }
+                    }
+                } else {
+                    items.forEach { media ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                listOfNotNull(media.displayName, media.sizeBytes?.let(::formatBytes)).joinToString(" · "),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(onClick = { openMedia(context, media) }) { Text("Open") }
+                        }
+                    }
+                    items.firstOrNull()?.let { Text("In ${it.location}", style = MaterialTheme.typography.bodySmall) }
+                    OutlinedButton(onClick = { shareMedia(context, items) }) { Text("Share all") }
                 }
             }
         }
@@ -221,10 +283,16 @@ private fun openMedia(context: Context, media: SavedMedia) {
     }
 }
 
-private fun shareMedia(context: Context, media: SavedMedia) {
-    val send = Intent(Intent.ACTION_SEND)
-        .setType(media.mimeType)
-        .putExtra(Intent.EXTRA_STREAM, media.uri)
-        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+private fun shareMedia(context: Context, items: List<SavedMedia>) {
+    val send = if (items.size == 1) {
+        Intent(Intent.ACTION_SEND)
+            .setType(items[0].mimeType)
+            .putExtra(Intent.EXTRA_STREAM, items[0].uri)
+    } else {
+        Intent(Intent.ACTION_SEND_MULTIPLE)
+            .setType(items.map { it.mimeType }.distinct().singleOrNull() ?: "*/*")
+            .putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(items.map { it.uri }))
+    }
+    send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     context.startActivity(Intent.createChooser(send, null))
 }

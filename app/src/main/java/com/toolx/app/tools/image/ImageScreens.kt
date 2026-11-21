@@ -231,6 +231,45 @@ fun ImageConvertScreen(tool: Tool, onBack: () -> Unit) {
     )
 }
 
+// ---------- Crop ----------
+
+@Composable
+fun ImageCropScreen(tool: Tool, onBack: () -> Unit) {
+    var crop by rememberSaveable(stateSaver = CropRectSaver) { mutableStateOf(CropRect.Full) }
+    var ratio by rememberSaveable { mutableStateOf(CropRatio.FREE) }
+    var format by rememberSaveable { mutableStateOf(OutputFormat.JPEG) }
+    var quality by rememberSaveable { mutableIntStateOf(92) }
+
+    ImageToolFrame(
+        tool = tool,
+        onBack = onBack,
+        exportLabel = "Crop",
+        canExport = crop != CropRect.Full,
+        onNewImage = { _, _, mime ->
+            crop = CropRect.Full
+            ratio = CropRatio.FREE
+            format = OutputFormat.fromMime(mime)
+        },
+        preview = { uri, size ->
+            if (size == null) {
+                ImagePreview(uri)
+            } else {
+                CropPreview(uri, size, crop, ratio.value(size), onCropChange = { crop = it }, format = format, quality = quality)
+            }
+        },
+        options = { _, size ->
+            SectionLabel("Aspect ratio")
+            OptionChips(CropRatio.entries, ratio, label = { it.label }) { r ->
+                ratio = r
+                // Picking a ratio (or Free, which acts as reset) snaps to the largest centred box.
+                size?.let { crop = CropRect.centered(it, r.value(it)) }
+            }
+            FormatAndQuality(format, quality, { format = it }, { quality = it })
+        },
+        task = { ctx, uri -> ImageEngine.crop(ctx, uri, crop, format, quality) },
+    )
+}
+
 // ---------- Rotate & flip ----------
 
 @Composable

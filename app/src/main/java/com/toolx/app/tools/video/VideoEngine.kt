@@ -1,37 +1,34 @@
 package com.toolx.app.tools.video
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import androidx.annotation.OptIn
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.effect.Crop
+import androidx.media3.effect.Presentation
 import androidx.media3.effect.ScaleAndRotateTransformation
-import androidx.media3.transformer.Composition
 import androidx.media3.transformer.DefaultEncoderFactory
 import androidx.media3.transformer.EditedMediaItem
 import androidx.media3.transformer.Effects
-import androidx.media3.transformer.ExportException
-import androidx.media3.transformer.ExportResult
-import androidx.media3.transformer.ProgressHolder
 import androidx.media3.transformer.Transformer
 import androidx.media3.transformer.VideoEncoderSettings
+import com.toolx.app.core.MediaExport
 import com.toolx.app.core.MediaKind
 import com.toolx.app.core.MediaSaver
 import com.toolx.app.core.SavedMedia
+import com.toolx.app.tools.image.CropRect
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -92,18 +89,8 @@ object VideoEngine {
         }.getOrNull()
     }
 
-    suspend fun trim(context: Context, uri: Uri, startMs: Long, endMs: Long, onProgress: (Float) -> Unit): SavedMedia {
-        val item = MediaItem.Builder()
-            .setUri(uri)
-            .setClippingConfiguration(
-                MediaItem.ClippingConfiguration.Builder()
-                    .setStartPositionMs(startMs)
-                    .setEndPositionMs(endMs)
-                    .build(),
-            )
-            .build()
-        return exportVideo(context, EditedMediaItem.Builder(item).build(), "trim", onProgress = onProgress)
-    }
+    suspend fun trim(context: Context, uri: Uri, startMs: Long, endMs: Long, onProgress: (Float) -> Unit): SavedMedia =
+        exportVideo(context, clipItem(uri, startMs, endMs), "trim", onProgress = onProgress)
 
     suspend fun compress(context: Context, uri: Uri, preset: CompressPreset, onProgress: (Float) -> Unit): SavedMedia {
         val meta = readMeta(context, uri)
@@ -218,7 +205,112 @@ object VideoEngine {
         return saveAndCleanup(context, file, MediaSaver.fileName("audio", "m4a"), "audio/mp4", MediaKind.AUDIO)
     }
 
+    suspend fun volume(context: Context, uri: Uri, gain: Float, onProgress: (Float) -> Unit): SavedMedia {
+        val edited = EditedMediaItem.Builder(MediaItem.fromUri(uri))
+            .setEffects(Effects(listOf(MediaExport.gainProcessor(gain)), listOf()))
+            .build()
+        return exportVideo(context, edited, "volume", onProgress = onProgress)
+    }
+
+    /** Constant speed change; audio keeps its pitch, like the preview player. */
+    suspend fun speed(context: Context, uri: Uri, speed: Float, onProgress: (Float) -> Unit): SavedMedia {
+        val (audio, video) = MediaExport.speedEffects(speed, keepPitch = true)
+        val edited = EditedMediaItem.Builder(MediaItem.fromUri(uri))
+            .setEffects(Effects(audio, listOf(video)))
+            .build()
+        return exportVideo(context, edited, "speed", onProgress = onProgress)
+    }
+
+    /**
+     * Rotates clockwise by [rotationCw] degrees, then crops to [crop], which is
+     * given in the coordinates of the rotated frame (what the user sees).
+     */
+    suspend fun cropRotate(context: Context, uri: Uri, rotationCw: Int, crop: CropRect, onProgress: (Float) -> Unit): SavedMedia {
+        val effects = buildList<Effect> {
+            if (rotationCw % 360 != 0) {
+                // Media3 rotates counter-clockwise.
+                add(ScaleAndRotateTransformation.Builder().setRotationDegrees((360 - rotationCw % 360).toFloat()).build())
+            }
+            if (crop != CropRect.Full) {
+                // Crop takes normalized device coordinates: -1..1 with y pointing up.
+                add(Crop(crop.left * 2 - 1, crop.right * 2 - 1, 1 - crop.bottom * 2, 1 - crop.top * 2))
+            }
+        }
+        val edited = EditedMediaItem.Builder(MediaItem.fromUri(uri))
+            .setEffects(Effects(listOf(), effects))
+            .build()
+        return exportVideo(context, edited, "cropped", onProgress = onProgress)
+    }
+
+    /** Splits at [pointsMs] (sorted, strictly inside the video) into consecutive parts. */
+    suspend fun split(context: Context, uri: Uri, pointsMs: List<Long>, durationMs: Long, onProgress: (Float) -> Unit): List<SavedMedia> {
+        val bounds = listOf(0L) + pointsMs + durationMs
+        val parts = bounds.size - 1
+        return (0 until parts).map { i ->
+            exportVideo(context, clipItem(uri, bounds[i], bounds[i + 1]), "part${i + 1}", onProgress = { p ->
+                onProgress((i + p) / parts)
+            })
+        }
+    }
+
+    /**
+     * Joins videos in order. Every clip is fitted (letterboxed) into the first
+     * clip's resolution so mixed sizes and orientations line up.
+     */
+    suspend fun merge(context: Context, uris: List<Uri>, onProgress: (Float) -> Unit): SavedMedia {
+        val first = readMeta(context, uris.first())
+        val fit = first?.let {
+            fun even(x: Int) = (x / 2 * 2).coerceAtLeast(2)
+            Presentation.createForWidthAndHeight(even(it.displayWidth), even(it.displayHeight), Presentation.LAYOUT_SCALE_TO_FIT)
+        }
+        val items = uris.map { u ->
+            EditedMediaItem.Builder(MediaItem.fromUri(u))
+                .setEffects(Effects(listOf(), listOfNotNull(fit)))
+                .build()
+        }
+        val file = MediaExport.run(context, MediaExport.sequence(items), "mp4", onProgress = onProgress)
+        return MediaExport.saveAndCleanup(context, file, MediaSaver.fileName("merged", "mp4"), MimeTypes.VIDEO_MP4, MediaKind.VIDEO)
+    }
+
+    /**
+     * A display-oriented frame (at most 1280 px) for editors such as crop.
+     * Some devices return frames unrotated, so the result is rotated to match [meta].
+     */
+    suspend fun frameAt(context: Context, uri: Uri, meta: VideoMeta, timeMs: Long): Bitmap? = withContext(Dispatchers.IO) {
+        runCatching {
+            val r = MediaMetadataRetriever()
+            try {
+                r.setDataSource(context, uri)
+                val frame = r.getScaledFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 1280, 1280)
+                    ?: return@runCatching null
+                val wantLandscape = meta.displayWidth > meta.displayHeight
+                val isLandscape = frame.width > frame.height
+                if (meta.rotation % 180 != 0 && wantLandscape != isLandscape) {
+                    val m = Matrix().apply { postRotate(meta.rotation.toFloat()) }
+                    Bitmap.createBitmap(frame, 0, 0, frame.width, frame.height, m, true).also { if (it !== frame) frame.recycle() }
+                } else {
+                    frame
+                }
+            } finally {
+                r.release()
+            }
+        }.getOrNull()
+    }
+
     // ---------- plumbing ----------
+
+    private fun clipItem(uri: Uri, startMs: Long, endMs: Long): EditedMediaItem {
+        val item = MediaItem.Builder()
+            .setUri(uri)
+            .setClippingConfiguration(
+                MediaItem.ClippingConfiguration.Builder()
+                    .setStartPositionMs(startMs)
+                    .setEndPositionMs(endMs)
+                    .build(),
+            )
+            .build()
+        return EditedMediaItem.Builder(item).build()
+    }
 
     private suspend fun exportVideo(
         context: Context,
@@ -228,66 +320,17 @@ object VideoEngine {
         configure: Transformer.Builder.() -> Unit = {},
     ): SavedMedia {
         val file = runTransformer(context, edited, "mp4", configure, onProgress)
-        return saveAndCleanup(context, file, MediaSaver.fileName(tag, "mp4"), MimeTypes.VIDEO_MP4, MediaKind.VIDEO)
+        return MediaExport.saveAndCleanup(context, file, MediaSaver.fileName(tag, "mp4"), MimeTypes.VIDEO_MP4, MediaKind.VIDEO)
     }
 
     private suspend fun saveAndCleanup(context: Context, file: File, name: String, mime: String, kind: MediaKind): SavedMedia =
-        withContext(Dispatchers.IO) {
-            try {
-                MediaSaver.saveFile(context, file, name, mime, kind)
-            } finally {
-                file.delete()
-            }
-        }
+        MediaExport.saveAndCleanup(context, file, name, mime, kind)
 
-    /** Runs a Transformer export on the main looper, reporting progress and honoring cancellation. */
     private suspend fun runTransformer(
         context: Context,
         edited: EditedMediaItem,
         extension: String,
         configure: Transformer.Builder.() -> Unit = {},
         onProgress: (Float) -> Unit,
-    ): File = withContext(Dispatchers.Main) {
-        val output = File(context.cacheDir, "export_${System.currentTimeMillis()}.$extension")
-        val handler = Handler(Looper.getMainLooper())
-
-        suspendCancellableCoroutine { cont ->
-            val transformer = Transformer.Builder(context)
-                .apply(configure)
-                .addListener(object : Transformer.Listener {
-                    override fun onCompleted(composition: Composition, exportResult: ExportResult) {
-                        handler.removeCallbacksAndMessages(null)
-                        if (cont.isActive) cont.resume(output)
-                    }
-
-                    override fun onError(composition: Composition, exportResult: ExportResult, exportException: ExportException) {
-                        handler.removeCallbacksAndMessages(null)
-                        output.delete()
-                        if (cont.isActive) cont.resumeWithException(exportException)
-                    }
-                })
-                .build()
-
-            transformer.start(edited, output.absolutePath)
-
-            val holder = ProgressHolder()
-            val poll = object : Runnable {
-                override fun run() {
-                    if (transformer.getProgress(holder) == Transformer.PROGRESS_STATE_AVAILABLE) {
-                        onProgress(holder.progress / 100f)
-                    }
-                    if (cont.isActive) handler.postDelayed(this, 250)
-                }
-            }
-            handler.post(poll)
-
-            cont.invokeOnCancellation {
-                handler.post {
-                    handler.removeCallbacksAndMessages(null)
-                    transformer.cancel()
-                    output.delete()
-                }
-            }
-        }
-    }
+    ): File = MediaExport.run(context, MediaExport.single(edited), extension, configure, onProgress)
 }

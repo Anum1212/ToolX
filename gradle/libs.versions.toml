@@ -9,6 +9,8 @@ navigationCompose = "2.8.5"
 media3 = "1.5.1"
 coil = "2.7.0"
 junit = "4.13.2"
+# Bundled model (~4.5 MB): runs fully on the device, no Play services download.
+mlkitSelfie = "16.0.0-beta6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -30,6 +32,8 @@ media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", versi
 media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
 
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+
+mlkit-segmentation-selfie = { group = "com.google.mlkit", name = "segmentation-selfie", version.ref = "mlkitSelfie" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 

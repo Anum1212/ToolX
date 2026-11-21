@@ -75,6 +75,13 @@ object MediaSaver {
         return SavedMedia(uri, mimeType, displayName, location, sizeOf(context, uri))
     }
 
+    /** Display name of any content Uri, or null if the provider doesn't report it. */
+    fun displayNameOf(context: Context, uri: Uri): String? = runCatching {
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
+            if (c.moveToFirst() && !c.isNull(0)) c.getString(0) else null
+        }
+    }.getOrNull()
+
     /** Size of any content Uri, or null if the provider doesn't report it. */
     fun sizeOf(context: Context, uri: Uri): Long? = runCatching {
         context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { c ->

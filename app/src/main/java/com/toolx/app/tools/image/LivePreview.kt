@@ -135,7 +135,7 @@ fun LiveImagePreview(
 }
 
 @Composable
-private fun EstimateLine(r: ImagePreviewResult, originalBytes: Long?) {
+internal fun EstimateLine(r: ImagePreviewResult, originalBytes: Long?) {
     val sizeText = (if (r.exact) "" else "≈ ") + formatBytes(r.bytes)
     val change = originalBytes?.takeIf { it > 0 }?.let { orig ->
         val pct = ((r.bytes - orig) * 100.0 / orig).roundToInt()

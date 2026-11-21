@@ -15,7 +15,8 @@ sealed interface ProcessingState {
     data object Idle : ProcessingState
     /** [progress] is 0..1, or null when the operation can't report progress. */
     data class Running(val progress: Float?) : ProcessingState
-    data class Done(val media: SavedMedia) : ProcessingState
+    /** One or more saved files (e.g. Split produces several). */
+    data class Done(val items: List<SavedMedia>) : ProcessingState
     data class Failed(val message: String) : ProcessingState
 }
 
@@ -30,17 +31,20 @@ class ProcessingViewModel(app: Application) : AndroidViewModel(app) {
 
     private var job: Job? = null
 
-    fun run(task: suspend (context: Context, onProgress: (Float) -> Unit) -> SavedMedia) {
+    fun run(task: suspend (context: Context, onProgress: (Float) -> Unit) -> SavedMedia) =
+        runAll { ctx, progress -> listOf(task(ctx, progress)) }
+
+    fun runAll(task: suspend (context: Context, onProgress: (Float) -> Unit) -> List<SavedMedia>) {
         if (job?.isActive == true) return
         job = viewModelScope.launch {
             _state.value = ProcessingState.Running(null)
             _state.value = try {
-                val media = task(getApplication()) { p ->
+                val items = task(getApplication()) { p ->
                     if (_state.value is ProcessingState.Running) {
                         _state.value = ProcessingState.Running(p.coerceIn(0f, 1f))
                     }
                 }
-                ProcessingState.Done(media)
+                ProcessingState.Done(items)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
