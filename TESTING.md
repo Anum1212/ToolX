@@ -140,7 +140,7 @@ Outputs were pulled to the PC and checked independently of the app where possibl
 - **Convert audio:** WAV, FLAC and Opus (OGG) outputs converted back to WAV in-app: FLAC is bit-identical to the WAV, Opus decodes at 48 kHz with the same RMS and pitch.
 - **Reverse audio:** on a test file of 1 s hiss then a loud tone, the reversed copy starts loud (RMS 0.21) and ends on the hiss (0.03).
 - **Noise reduction:** same file, strength 60%: hiss RMS 0.035 → 0.004 (≈ −19 dB), tone RMS 0.215 → 0.209, and the zero-crossing pitch estimate goes from 981 Hz (hiss-polluted) to exactly 440 Hz. Measured on the preview WAVs pulled from the app cache (`run-as`).
-- **Edit tags:** not device-tested yet.
+- **Edit tags:** on an M4A with no tags, set title, artist, album, album artist, year, track, genre, comment and a cover photo. The tagged copy was saved as `… (1).m4a` next to the untouched original (same size as before). Read on the PC with a library-free `ilst` parser: every value present, track 3, genre as `gnre` 53 (ID3v1 "Electronic" + 1), cover a 115 KB JPEG, audio still 6.04 s. Android's media scanner filed it under artist ToolX Band › album Emulator Sessions, and reopening it in the tool showed every field and the cover.
 
 ## Bugs found by this testing (all fixed)
 

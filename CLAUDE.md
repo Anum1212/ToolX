@@ -116,7 +116,7 @@ adb shell content call --method scan_volume --uri content://media --arg external
     - All 58 were opened on the emulator with no crashes.
     - Spot-checked results: EMI, unit values, Roman numerals, number to words, base conversion, fraction, prime, factorial, and the wheel winner matching the pointer.
     - Compass, Level and Ruler need a real phone to judge accuracy.
-  - Former "Soon" tools (2026-11-21): Video Reverse, Video to GIF, Convert video, Add music, Watermark video; Audio Convert, Reverse, Noise reduction, Edit tags; Image Round corners, Color picker, Watermark. No tool shows "Soon" any more. All but Edit tags were export-tested (TESTING.md).
+  - Former "Soon" tools (2026-11-21): Video Reverse, Video to GIF, Convert video, Add music, Watermark video; Audio Convert, Reverse, Noise reduction, Edit tags; Image Round corners, Color picker, Watermark. No tool shows "Soon" any more. All were export-tested (TESTING.md).
 - **Tests:** see `TESTING.md`.
   - 143 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
   - The calc/finance helpers are `internal` top-level functions (`averageStats`, `emi`, `loanSchedule`, `futureValue`, `factorize`, …) so tests can reach them. Keep new logic out of composables, and add a test with an independently known expected value.
@@ -140,4 +140,7 @@ adb shell content call --method scan_volume --uri content://media --arg external
   - The photo picker lists the *newest* image first, and your own outputs and screenshots count. Save screenshots to `/data/local/tmp`, not `/sdcard`, and clear `Pictures/ToolX` between runs, or the next test silently uses a previous output as its input.
   - `uiautomator dump` fails while an ExoPlayer view is on screen, so tap by coordinates there.
   - The audio document picker path on the emulator is Audio › Unknown › Music.
+  - The audio picker groups files by artist/album tags: untagged files sit under Audio › Unknown › <folder>, but a file tagged by Edit tags moves to Audio › <artist> › <album>.
+  - On Edit tags the keyboard covers the lower fields: tap one field, type, then `KEYCODE_BACK` before the next tap. An extra Back with the keyboard already closed leaves the tool and discards the form.
+  - App cache files (e.g. Noise reduction preview WAVs) can be pulled with `adb shell "run-as com.toolx.app cat cache/<name> > /data/local/tmp/<name>"`.
   - `screenrecord` clips of a static screen are only a frame or two long, so they're useless as test inputs.
