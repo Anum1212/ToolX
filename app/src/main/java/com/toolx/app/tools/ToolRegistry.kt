@@ -80,6 +80,8 @@ object ToolRegistry {
         com.toolx.app.tools.text.TextTools,
         com.toolx.app.tools.units.UnitTools,
         com.toolx.app.tools.calc.CalcTools,
+        com.toolx.app.tools.math.MathTools,
+        com.toolx.app.tools.units.ShoeTools,
         com.toolx.app.tools.general.GeneralTools,
         com.toolx.app.tools.finance.FinanceTools,
         com.toolx.app.tools.random.RandomTools,

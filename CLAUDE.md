@@ -29,6 +29,15 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
     - **Search:** the only thing at the bottom (no tab bar). It searches every category and replaces the pager with results while there is text. It sits above the keyboard via the union of the navigation-bar and keyboard insets; padding with both would leave a gap. Back clears it.
     - **Burger menu:** the ☰ beside the title opens a `ModalNavigationDrawer` with Recent, All tools, each category, and Settings. Drawer swipe gestures are on only while it's open, so they don't fight the pager.
     - **Settings** is its own nav route ("settings") with a back arrow.
+- **Step-by-step math** (`tools/math/`, module `MathTools`, listed under Calculate) was added 2026-11-21.
+  - **Tools:** addition (2–6 numbers), subtraction, long multiplication, long division (remainder, or 1–4 decimal places, stopping early when exact), and fractions (+ − × ÷ with whole and mixed numbers).
+  - **`StepMath`** builds a `Worksheet`: lines of cells keyed by column, with marks for carry, struck, borrowed, placeholder, brought-down and answer, plus a carry `group` for colour. It also builds explained `Step`s. `FractionSteps` builds equation chains (`Term.Frac` / `Mixed` / `Text`) like "4 × 3 over 5 × 7 = 12/35".
+  - **Layout:** whole numbers only, as in school column methods. Multiplication shows one carry row per multiplier digit above the top number, in that digit's colour, then the partial rows (placeholder zeros greyed) and the addition carries. Long division shows the quotient over the dividend, each "n × divisor" subtraction, and brought-down digits.
+  - **Tests:** `StepMathTest` and `FractionStepsTest` check the user's own examples (187 × 54 = 10,098 via 748 + 9,350, and 432 ÷ 15 = 28 r 12 = 28 4/5) plus textbook cases.
+- **Shoe size** (`tools/units/ShoeSizes.kt`, module `ShoeTools`, under Units) converts through foot length.
+  - **UK/US formulas:** size = 3 × last length (in) − offset, where the last is the foot + 0.5 in. Offsets: UK 25, US men's 24, US women's 22.5, UK kids 12, US kids 11⅔.
+  - **Other systems:** EU = 1.5 × (foot + 1.5 cm). Brazil ≈ EU − 2 and Russia ≈ EU − 1. Japan is the foot in cm; Mondopoint, Korea and China are the foot in mm.
+  - **Rounding:** EU-style sizes are whole numbers, UK/US go in half sizes. Kids' rows appear only within their range. Checked against a common chart row: 26 cm = UK 7 = US M 8 = US W 9.5 = EU 41.
 - **PDF tools** (`tools/pdf/`, a `ToolModule` like the everyday tools) were added 2026-11-21, following iLovePDF's tool list, offline only.
   - **Libraries:** PdfBox-Android 2.0.27.0 does editing (call `PdfEngine.init` first; it's lazy). The platform `PdfRenderer` (pdfium) renders pages; it applies `/Rotate`, so its bitmaps are what the reader sees.
   - **Files:** every operation works on a cache copy (`PdfEngine.localCopy`, keyed by Uri + size). Output goes to `Documents/ToolX` through the MediaStore Files collection (`MediaKind.DOCUMENT`).
@@ -102,7 +111,7 @@ adb shell content call --method scan_volume --uri content://media --arg external
     - Compass, Level and Ruler need a real phone to judge accuracy.
   - The other tools in `ToolRegistry` show "Soon".
 - **Tests:** see `TESTING.md`.
-  - 111 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
+  - 131 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
   - The calc/finance helpers are `internal` top-level functions (`averageStats`, `emi`, `loanSchedule`, `futureValue`, `factorize`, …) so tests can reach them. Keep new logic out of composables, and add a test with an independently known expected value.
   - On the emulator, sensors can be faked with `adb emu sensor set acceleration x:y:z` and `adb emu sensor set magnetic-field x:y:z`.
 - **Export-tested on the emulator (2026-11-21):**

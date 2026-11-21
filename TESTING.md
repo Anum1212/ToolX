@@ -6,7 +6,7 @@
 gradle --console=plain :app:testDebugUnitTest
 ```
 
-Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 111 tests in `app/src/test/`, and every expected value comes from an independent reference: SI/NIST unit definitions, standard amortization tables, and known math results.
+Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 131 tests in `app/src/test/`, and every expected value comes from an independent reference: SI/NIST unit definitions, standard amortization tables, and known math results.
 
 | Suite | Covers |
 |---|---|
@@ -17,6 +17,9 @@ Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 111 tests in `ap
 | `FinanceMathTest` (4) | EMI (e.g. 200k at 7.5% over 30 years = 1,398.43), schedule totals, future value of a lump sum and SIP |
 | `FormatTest` (4) | Number formatting and parsing |
 | `ThemeCatalogueTest` (8) | Contrast maths (incl. the known 4.54:1 #767676), 10 light + 10 dark themes, one distinct colour per category in every theme, readable text, category colours and buttons in every theme, System/unknown-id fallback |
+| `StepMathTest` (9) | Column addition carries, subtraction borrowing across zeros and negatives, 187 × 54 with every carry and partial row, 432 ÷ 15 = 28 r 12 = 28 4/5, decimals stopping when exact, 20-digit products |
+| `FractionStepsTest` (7) | 4/5 × 3/7 = 12/35 (with the "4 × 3 over 5 × 7" line), LCD for 1/4 + 1/6, mixed 2 1/3 − 3/4 = 1 7/12, ÷ by reciprocal, whole × fraction, simplifying, parsing |
+| `ShoeSizesTest` (4) | Every system round-trips; US M = UK + 1 and US W = UK + 2.5 by definition; matches a common chart row (26 cm); kids' sizes only for small feet |
 | `RecentsTest` (2) | Recent tools: newest first, no duplicates, capped at 12 |
 | `ToolVisibilityTest` (3) | Hidden categories and tools disappear from the list and from search |
 | `PdfOpsTest` (11) | Page ranges (incl. open-ended and invalid), split groups, page labels, visual↔PDF coordinates for every /Rotate, crop mapping, anchors, content bounds (auto-trim), image page layout, downscale targets, text → Markdown |
@@ -48,6 +51,15 @@ Real values were typed into the actual screens, and the displayed results were c
   - Level: flat, a 10° tilt and a 30° tilt.
   - Compass: settles on N 0°, E 90°, S 180° and W 270° (3–6 s on the emulator).
 - **Ruler:** cm and inches agree with each other and with the 420 dpi screen.
+
+## Step-by-step math and shoe sizes (emulator, 2026-11-21)
+
+- **Long multiplication 187 × 54:** matches the user's textbook picture (748 + 9350 = 10098). The ×4 carries (2, 3) and ×5 carries (3, 4) sit above the top number in each row's colour, the addition carries (1, 1) sit above the partial rows, and the placeholder 0 is grey.
+- **Long division 432 ÷ 15:** quotient 28 over 432, "2 × 15" 30 and "8 × 15" 120 subtracted, the brought-down 2 highlighted, remainder 12, 28 4/5 and 28.8.
+- **Fractions 4/5 × 3/7:** the 4 × 3 over 5 × 7 = 12/35 chain, as in the user's picture.
+- **Subtraction 503 − 278 = 225:** 5→4, 0→9 and 3→13 shown with crossed-out digits.
+- **Shoe size UK 7:** 25.8 cm, EU 41, US M 8, US W 9.5, JP 26 cm, 260 mm, BR 39, RU 40. Kids' rows are hidden for an adult foot.
+- **Bug found and fixed:** the division answer step dropped the whole number ("28 12/15 = 4/5"). It now reads "28 12/15 = 28 4/5", and a unit test covers it.
 
 ## UI and themes (emulator, 2026-11-21)
 
