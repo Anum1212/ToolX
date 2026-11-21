@@ -52,7 +52,7 @@ val FloatRangeSaver = Saver<ClosedFloatingPointRange<Float>, List<Float>>(
     restore = { it[0]..it[1] },
 )
 
-private val UriListSaver = listSaver<List<Uri>, String>(
+val UriListSaver = listSaver<List<Uri>, String>(
     save = { list -> list.map { it.toString() } },
     restore = { list -> list.map { Uri.parse(it) } },
 )

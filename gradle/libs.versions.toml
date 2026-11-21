@@ -11,6 +11,8 @@ coil = "2.7.0"
 junit = "4.13.2"
 # Bundled model (~4.5 MB): runs fully on the device, no Play services download.
 mlkitSelfie = "16.0.0-beta6"
+# Android port of Apache PDFBox (Apache 2.0): edit, merge, split, encrypt, extract text.
+pdfbox = "2.0.27.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,7 +35,8 @@ media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "medi
 
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
-mlkit-segmentation-selfie = { group = "com.google.mlkit", name = "segmentation-selfie", version.ref = "mlkitSelfie" }
+pdfbox-android = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
+mlkit-segmentation-selfie ={ group = "com.google.mlkit", name = "segmentation-selfie", version.ref = "mlkitSelfie" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 

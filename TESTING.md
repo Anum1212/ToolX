@@ -6,7 +6,7 @@
 gradle --console=plain :app:testDebugUnitTest
 ```
 
-Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 87 tests in `app/src/test/`, and every expected value comes from an independent reference: SI/NIST unit definitions, standard amortization tables, and known math results.
+Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 98 tests in `app/src/test/`, and every expected value comes from an independent reference: SI/NIST unit definitions, standard amortization tables, and known math results.
 
 | Suite | Covers |
 |---|---|
@@ -16,6 +16,7 @@ Run with `JAVA_HOME` set to a JDK 21 (see CLAUDE.md). There are 87 tests in `app
 | `CalcMathTest` (7) | gcd/aspect ratio, fractions and mixed numbers, decimal → fraction (π ≈ 355/113), primes (including a Carmichael number), factorization, durations, averages |
 | `FinanceMathTest` (4) | EMI (e.g. 200k at 7.5% over 30 years = 1,398.43), schedule totals, future value of a lump sum and SIP |
 | `FormatTest` (4) | Number formatting and parsing |
+| `PdfOpsTest` (11) | Page ranges (incl. open-ended and invalid), split groups, page labels, visual↔PDF coordinates for every /Rotate, crop mapping, anchors, content bounds (auto-trim), image page layout, downscale targets, text → Markdown |
 | `MaskOpsTest` (14) | Mask alpha ramp, head finding (step shoulders, gradually sloping shoulders, a stray blob above the head), passport crop proportions and clamping, box mean, guided filter removing a 6 px overshoot (including navy vs dark red with equal brightness), bilinear resampling, 300 dpi sizes, print-sheet grid, hex colours |
 
 ## On-device checks (emulator, 2026-11-21)
@@ -44,6 +45,38 @@ Real values were typed into the actual screens, and the displayed results were c
   - Level: flat, a 10° tilt and a 30° tilt.
   - Compass: settles on N 0°, E 90°, S 180° and W 270° (3–6 s on the emulator).
 - **Ruler:** cm and inches agree with each other and with the 420 dpi screen.
+
+## PDF tools (emulator, 2026-11-21)
+
+Input: a hand-written 4-page PDF (346 KB). It has headings, bullets, a fake account number, an embedded photo, a `/Rotate 90` page and a MediaBox inherited from the page tree, plus damaged copies. Each output was checked by rendering it with pdfium (the app's PDF to JPG, independent of PdfBox) or by extracting its text.
+
+| Tool | Result |
+|---|---|
+| PDF to text / Markdown | All 4 pages extracted (101 words). Markdown gives `#`/`##` headings, the two-line paragraph joined, bullets, and paragraph breaks. Saved `.md` to Documents/ToolX. |
+| Page numbers | "Page N of 4" bottom-right on every page, upright on the rotated page. The live preview matched the output. |
+| Watermark | Centred, 45°, 25% opacity, the same as the reader sees it on the rotated page. |
+| Compress | Light 337 KB, Medium 174 KB, Strong 67 KB (−81%). The shared photo was converted once and the preview shows page 2, where the photo is. |
+| Split | "1-2, 3-4" gives 2 files. The text-only half is 1.6 KB after resource trimming (353 KB before). |
+| Merge | 2 files give 8 pages, in order. |
+| Organize | Delete 4, rotate 1, move 1. The output matched exactly. |
+| Rotate | All pages +90°. The page already at 90° ends at 180°. |
+| Crop | Auto-trim covers the union of all pages' content. Output is 84% of Letter, and the rotated page stays landscape. |
+| Sign | Signature drawn, moved, placed on the rotated page. It is upright and exactly where it was placed. |
+| Redact | The box is black in the output. "1234-5678" is no longer extractable, and the other pages keep their text. |
+| Protect / Unlock | Other tools refuse the protected file. A wrong password says "Wrong password", the right one unlocks, and the text is identical. |
+| Repair | Truncated xref: 4 pages. Leading junk (pdfium can't open it): 4 pages. Bad header: 4 pages after the header retry. |
+| Images to PDF | A4 page matching the layout preview. |
+
+Found and fixed during this testing:
+1. Split/extract carried every shared image along: resources are now trimmed to what each page draws.
+2. Compress counted one shared image as 4 and previewed a page without it.
+3. The default crop cut off a heading. It now auto-trims to the content of all pages.
+4. Thumbnail rows misaligned with landscape pages, shifting buttons after a delete. Cells are now fixed-size, and rotated thumbnails fill them.
+5. The signature box distorted on landscape pages.
+6. A stale cached copy could be used for a changed file with the same Uri.
+7. A bad-header PDF showed PdfBox's raw error; Repair now recovers it.
+
+Not covered: large PDFs (hundreds of pages, 100 MB+), fonts outside Latin in real-world files, PDFs with forms, layers or annotations, and opening the outputs in other PDF apps.
 
 ## Background tools on a real photo (emulator, 2026-11-21)
 

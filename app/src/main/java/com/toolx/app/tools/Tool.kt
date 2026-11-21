@@ -7,6 +7,7 @@ enum class ToolCategory(val title: String) {
     VIDEO("Video"),
     AUDIO("Audio"),
     IMAGE("Image"),
+    PDF("PDF"),
     TEXT("Text"),
     UNITS("Units"),
     CALC("Calculate"),

@@ -21,6 +21,15 @@ A personal Android toolbox for video, audio and image tasks. Everything runs on 
 
 Audio exports are AAC in `.m4a`.
 
+### PDF (all offline; saved to `Documents/ToolX`)
+
+| Pages | Convert | Stamp & secure |
+|---|---|---|
+| Merge, Split (ranges / every N / extract), Organize (reorder, rotate, delete), Rotate, Crop (auto-trim to content) | PDF to JPG/PNG (72–300 dpi), Images to PDF (A4 / Letter / fit), PDF to text or Markdown | Page numbers, Watermark, Sign (drawn), Redact (true removal), Protect (AES-256), Unlock, Compress, Repair |
+
+Not built yet (possible offline): Edit PDF (add text/images), Scan to PDF, OCR, Compare, PDF forms.
+Not possible offline: PDF ↔ Word/PowerPoint/Excel, HTML to PDF from a URL, AI summarizer, Translate, PDF/A.
+
 ### Everyday tools (all offline, results update as you type)
 
 | Category | Tools |
@@ -35,7 +44,7 @@ Audio exports are AAC in `.m4a`.
 
 Not built, by decision: Currency (needs live exchange rates, which conflicts with "no network") and a "Sound" unit converter.
 
-Saved files go to `Movies/ToolX`, `Pictures/ToolX` and `Music/ToolX`.
+Saved files go to `Movies/ToolX`, `Pictures/ToolX`, `Music/ToolX` and `Documents/ToolX`.
 
 ## Stack
 
@@ -43,6 +52,7 @@ Saved files go to `Movies/ToolX`, `Pictures/ToolX` and `Music/ToolX`.
 - AndroidX Media3 Transformer for video and audio (hardware encoders)
 - Platform `ImageDecoder` / `Bitmap` for images, Coil for previews
 - ML Kit selfie segmentation (bundled model, on-device) for background removal; the manifest strips its INTERNET permission
+- PdfBox-Android (Apache 2.0, ~3 MB) for PDF editing; the platform `PdfRenderer` for page images
 - System photo picker (images/video) and document picker (audio) for input, MediaStore for output, so the app needs no storage permissions
 - minSdk 29 (Android 10), targetSdk 35
 

@@ -76,6 +76,7 @@ object ToolRegistry {
 
     /** Tool families that bring their own screens (text, units, calculators…). */
     val modules: List<ToolModule> = listOf(
+        com.toolx.app.tools.pdf.PdfTools,
         com.toolx.app.tools.text.TextTools,
         com.toolx.app.tools.units.UnitTools,
         com.toolx.app.tools.calc.CalcTools,
@@ -126,9 +127,7 @@ object ToolRegistry {
         Tool(ToolIds.IMAGE_PASSPORT, "Passport photo", "ID photo with a plain background, sized for printing", Icons.Rounded.AssignmentInd, ToolCategory.IMAGE, available = true, keywords = listOf("passport", "visa", "id", "35x45", "2x2", "background", "print")),
         Tool(ToolIds.IMAGE_ROUND, "Round corners", "Give an image rounded corners", Icons.Rounded.RoundedCorner, ToolCategory.IMAGE, keywords = listOf("circle", "radius")),
         Tool(ToolIds.IMAGE_COLOR_PICKER, "Color picker", "Pick colors from a photo", Icons.Rounded.Colorize, ToolCategory.IMAGE, keywords = listOf("hex", "rgb", "palette")),
-        Tool(ToolIds.IMAGE_WATERMARK, "Watermark image", "Stamp text or a logo on a photo", Icons.AutoMirrored.Rounded.BrandingWatermark, ToolCategory.IMAGE, keywords = listOf("logo", "text")),
-        Tool(ToolIds.IMAGES_TO_PDF, "Images to PDF", "Combine photos into one PDF", Icons.Rounded.PictureAsPdf, ToolCategory.IMAGE, keywords = listOf("document", "scan")),
-    )
+        Tool(ToolIds.IMAGE_WATERMARK, "Watermark image", "Stamp text or a logo on a photo", Icons.AutoMirrored.Rounded.BrandingWatermark, ToolCategory.IMAGE, keywords = listOf("logo", "text")),    )
 
     fun find(id: String?): Tool? = all.firstOrNull { it.id == id }
 

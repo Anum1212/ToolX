@@ -25,9 +25,11 @@ enum class MediaKind(val baseDir: String) {
     VIDEO(Environment.DIRECTORY_MOVIES),
     IMAGE(Environment.DIRECTORY_PICTURES),
     AUDIO(Environment.DIRECTORY_MUSIC),
+    /** PDFs and text files. */
+    DOCUMENT(Environment.DIRECTORY_DOCUMENTS),
 }
 
-/** Writes results into shared storage (Movies/ToolX, Pictures/ToolX, Music/ToolX). */
+/** Writes results into shared storage (Movies/ToolX, Pictures/ToolX, Music/ToolX, Documents/ToolX). */
 object MediaSaver {
 
     private const val APP_FOLDER = "ToolX"
@@ -53,6 +55,8 @@ object MediaSaver {
             MediaKind.VIDEO -> MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
             MediaKind.IMAGE -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
             MediaKind.AUDIO -> MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            // Non-media files may live under Documents/ via the generic Files collection.
+            MediaKind.DOCUMENT -> MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         }
         val location = "${kind.baseDir}/$APP_FOLDER"
         val values = ContentValues().apply {

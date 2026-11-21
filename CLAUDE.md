@@ -15,6 +15,17 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
   - Pure logic lives in `TextOps` / `GeneralOps` so it can be unit-tested.
   - Shared form pieces are in `ui/common/Forms.kt`: `NumberField`, `Dropdown`, `DateField`, `ResultCard` (tap a row to copy it), `BigResult`, `ToggleChip`, `ChipRow`, and `fmt`/`money`.
   - These tools compute live as you type. There's no Run button, which matches the "feedback before saving" rule.
+- **PDF tools** (`tools/pdf/`, a `ToolModule` like the everyday tools) were added 2026-11-21, following iLovePDF's tool list, offline only.
+  - **Libraries:** PdfBox-Android 2.0.27.0 does editing (call `PdfEngine.init` first; it's lazy). The platform `PdfRenderer` (pdfium) renders pages; it applies `/Rotate`, so its bitmaps are what the reader sees.
+  - **Files:** every operation works on a cache copy (`PdfEngine.localCopy`, keyed by Uri + size). Output goes to `Documents/ToolX` through the MediaStore Files collection (`MediaKind.DOCUMENT`).
+  - **Rotated pages:** all placement goes through `PdfOps.visualToUser` / `cropToUser`, which map "what the reader sees, top-left origin" to PDF user space for /Rotate 0/90/180/270. Stamps use a text matrix rotated by the page rotation, so they come out upright. Keep using these for anything new that places content.
+  - **Copying pages** (split, organize, previews) must use `copyPage`:
+    - It copies inherited MediaBox, CropBox, Resources and Rotate explicitly.
+    - It trims resources to the XObjects and fonts the page draws (`usedResources`). Without that, a text-only split kept a shared 340 KB photo: 353 KB became 1.6 KB.
+  - **Previews:** Page numbers and Watermark render the real operation on a one-page copy (`previewPage`). Compress runs every level in the background and shows the real resulting sizes, plus the first page that actually *draws* a re-encoded image. That page is found from its `Do` commands, because pages often list images they never draw.
+  - **Redact** rasterizes only the pages with boxes (200 dpi), so their text is truly gone. Text-extraction checks confirmed that.
+  - **Repair** retries with a fresh `%PDF` header if PdfBox rejects the original.
+  - **Not built yet:** Edit PDF, Scan to PDF, OCR, Compare, Forms. **Impossible offline:** the Office conversions, HTML from a URL, AI summarize and translate, PDF/A.
 - **Deliberately not built (user confirmed, 2026-11-21):** Currency and a "Sound" unit converter. The Lucky wheel's upside-down labels are accepted as they are.
 - **Background removal** (`tools/image/BackgroundEngine.kt`, `MaskOps.kt`, `BackgroundScreens.kt`) uses ML Kit **selfie** segmentation with the *bundled* model (~4.5 MB).
   - It runs on the device and finds **people only**. The Subject Segmentation API was rejected because Play services downloads its model.
@@ -70,13 +81,14 @@ adb shell content call --method scan_volume --uri content://media --arg external
   - Video: Trim, Compress, Mute, Extract audio, Volume, Speed, Crop & rotate, Split, Merge.
   - Audio: Trim, Cut, Merge, Speed, Volume.
   - Image: Resize, Compress & convert, Rotate & flip, Crop, Remove background, Passport photo.
+  - PDF (16): Merge, Split, Compress, Organize, Rotate, Crop, PDF to JPG, Images to PDF, PDF to text/Markdown, Page numbers, Watermark, Sign, Redact, Protect, Unlock, Repair. All were export-tested on the emulator (see TESTING.md).
   - Everyday tools (2026-11-21): 16 text, 12 unit, 11 calculation, 9 general, 4 finance, 5 random and 1 developer.
     - All 58 were opened on the emulator with no crashes.
     - Spot-checked results: EMI, unit values, Roman numerals, number to words, base conversion, fraction, prime, factorial, and the wheel winner matching the pointer.
     - Compass, Level and Ruler need a real phone to judge accuracy.
   - The other tools in `ToolRegistry` show "Soon".
 - **Tests:** see `TESTING.md`.
-  - 87 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
+  - 98 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
   - The calc/finance helpers are `internal` top-level functions (`averageStats`, `emi`, `loanSchedule`, `futureValue`, `factorize`, …) so tests can reach them. Keep new logic out of composables, and add a test with an independently known expected value.
   - On the emulator, sensors can be faked with `adb emu sensor set acceleration x:y:z` and `adb emu sensor set magnetic-field x:y:z`.
 - **Export-tested on the emulator (2026-11-21):**
@@ -92,6 +104,9 @@ adb shell content call --method scan_volume --uri content://media --arg external
   - Passport 35×45 mm: 413×531 px, with an 8-copy sheet.
   - Passport 2×2 in: 600×600 px, with a 6-copy touching sheet.
 - **Testing tips:**
+  - **PDF test files:** a script in the session scratchpad wrote a 4-page test PDF by hand (headings, bullets, an account number to redact, an embedded JPEG, a `/Rotate 90` page, and a MediaBox inherited from /Pages), plus damaged copies with a cut-off xref, a bad header and leading junk. Outputs were checked by rendering them with the app's own PDF to JPG (pdfium, independent of PdfBox) or by extracting their text.
+  - On screens with a drawing canvas (Redact, Sign, Crop), adb swipes that start on the page draw or move things instead of scrolling. Scroll from the left margin (x ≈ 30).
+  - Escape doesn't always close the keyboard. Use `KEYCODE_BACK`.
   - The photo picker lists the *newest* image first, and your own outputs and screenshots count. Save screenshots to `/data/local/tmp`, not `/sdcard`, and clear `Pictures/ToolX` between runs, or the next test silently uses a previous output as its input.
   - `uiautomator dump` fails while an ExoPlayer view is on screen, so tap by coordinates there.
   - The audio document picker path on the emulator is Audio › Unknown › Music.

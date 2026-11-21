@@ -68,6 +68,7 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.mlkit.segmentation.selfie)
+    implementation(libs.pdfbox.android)
 
     testImplementation(libs.junit)
 }

@@ -57,7 +57,10 @@ import kotlinx.coroutines.withContext
 
 // ---------- Picking ----------
 
-enum class PickType { VIDEO, IMAGE, AUDIO }
+enum class PickType(val mime: String) { VIDEO("video/*"), IMAGE("image/*"), AUDIO("audio/*"), PDF("application/pdf") }
+
+/** Audio and PDFs go through the document picker; the photo picker only shows photos and videos. */
+private val PickType.usesDocumentPicker get() = this == PickType.AUDIO || this == PickType.PDF
 
 private fun visualRequest(type: PickType) = when (type) {
     PickType.IMAGE -> PickVisualMediaRequest(PickVisualMedia.ImageOnly)
@@ -82,7 +85,7 @@ fun rememberMediaPicker(type: PickType, onPicked: (Uri) -> Unit): () -> Unit {
         uri?.let { keepAccess(context, it); onPicked(it) }
     }
     return {
-        if (type == PickType.AUDIO) document.launch(arrayOf("audio/*")) else visual.launch(visualRequest(type))
+        if (type.usesDocumentPicker) document.launch(arrayOf(type.mime)) else visual.launch(visualRequest(type))
     }
 }
 
@@ -98,7 +101,7 @@ fun rememberMultiMediaPicker(type: PickType, onPicked: (List<Uri>) -> Unit): () 
         if (uris.isNotEmpty()) onPicked(uris)
     }
     return {
-        if (type == PickType.AUDIO) document.launch(arrayOf("audio/*")) else visual.launch(visualRequest(type))
+        if (type.usesDocumentPicker) document.launch(arrayOf(type.mime)) else visual.launch(visualRequest(type))
     }
 }
 
