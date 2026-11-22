@@ -5,8 +5,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.media.AudioManager
-import android.media.ToneGenerator
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -25,6 +23,9 @@ import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LineWeight
+import androidx.compose.material.icons.rounded.FlashlightOn
+import androidx.compose.material.icons.rounded.Mosque
+import androidx.compose.material.icons.rounded.Sos
 import androidx.compose.material.icons.rounded.Looks6
 import androidx.compose.material.icons.rounded.ControlCamera
 import androidx.compose.material.icons.rounded.Straighten
@@ -34,21 +35,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -86,9 +83,6 @@ import com.toolx.app.ui.common.ToolScaffold
 import com.toolx.app.ui.common.copyToClipboard
 import com.toolx.app.ui.common.fmt
 import com.toolx.app.ui.common.formatDate
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.nio.charset.Charset
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -114,10 +108,13 @@ object GeneralTools : ToolModule {
 
     override val tools = listOf(
         t("gen_ruler", "Ruler", "Measure with your screen, cm and inches", Icons.Rounded.Straighten, "measure", "cm", "inch", "length"),
-        t("gen_morse", "Morse code", "Text ↔ Morse, with sound", Icons.Rounded.LineWeight, "morse", "sos", "telegraph"),
+        t("gen_morse", "Morse code", "Text ↔ Morse, as beeps or flashlight", Icons.Rounded.LineWeight, "morse", "telegraph", "flashlight", "beep", "signal"),
+        t("gen_flashlight", "Flashlight", "Torch with strobe and brightness", Icons.Rounded.FlashlightOn, "torch", "flashlight", "light", "strobe", "lamp"),
+        t("gen_sos", "SOS signal", "Flash SOS with the flashlight or screen", Icons.Rounded.Sos, "sos", "emergency", "flashlight", "torch", "help", "signal"),
+        t("gen_qibla", "Qibla", "Direction of the Kaaba from where you are", Icons.Rounded.Mosque, "qibla", "kaaba", "makkah", "mecca", "prayer", "salah", "namaz", "direction"),
         t("gen_roman", "Roman numerals", "2024 ↔ MMXXIV", Icons.Rounded.Looks6, "roman", "numerals", "latin"),
         t("gen_words", "Number to words", "1234 → one thousand two hundred…", Icons.Rounded.Translate, "spell", "cheque", "words", "lakh", "crore"),
-        t("gen_compass", "Compass", "Heading from the phone's sensors", Icons.Rounded.Explore, "north", "direction", "qibla", "heading"),
+        t("gen_compass", "Compass", "Heading from the phone's sensors", Icons.Rounded.Explore, "north", "direction", "heading"),
         t("gen_bytes", "Text ↔ bytes", "UTF-8 bytes as hex, binary or Base64", Icons.Rounded.Code, "string", "byte", "hex", "base64", "utf8", "encode"),
         t("gen_timezone", "Time zones", "Convert a time across zones", Icons.Rounded.Language, "timezone", "utc", "gmt", "world clock"),
         t("gen_level", "Level", "Bubble level and tilt angles", Icons.Rounded.ControlCamera, "spirit level", "bubble", "tilt", "angle", "flat"),
@@ -127,6 +124,9 @@ object GeneralTools : ToolModule {
     override val screens: Map<String, ToolScreenFn> = mapOf(
         "gen_ruler" to { tool, back -> RulerScreen(tool, back) },
         "gen_morse" to { tool, back -> MorseScreen(tool, back) },
+        "gen_flashlight" to { tool, back -> FlashlightScreen(tool, back) },
+        "gen_sos" to { tool, back -> SosScreen(tool, back) },
+        "gen_qibla" to { tool, back -> QiblaScreen(tool, back) },
         "gen_roman" to { tool, back -> RomanScreen(tool, back) },
         "gen_words" to { tool, back -> WordsScreen(tool, back) },
         "gen_compass" to { tool, back -> CompassScreen(tool, back) },
@@ -220,50 +220,8 @@ private fun RulerScreen(tool: Tool, onBack: () -> Unit) {
     }
 }
 
-// ---------- Morse ----------
-
 @Composable
-private fun MorseScreen(tool: Tool, onBack: () -> Unit) {
-    var input by rememberSaveable { mutableStateOf("SOS") }
-    val isMorse = GeneralOps.looksLikeMorse(input)
-    val output = if (isMorse) GeneralOps.fromMorse(input) else GeneralOps.toMorse(input)
-    val morseToPlay = if (isMorse) input else output
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var playing by remember { mutableStateOf<Job?>(null) }
-    val tone = remember { runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, 80) }.getOrNull() }
-    DisposableEffect(Unit) { onDispose { playing?.cancel(); tone?.release() } }
-
-    ToolScaffold(tool.title, onBack) {
-        OutlinedTextField(input, { input = it }, label = { Text("Text or Morse") }, minLines = 3, modifier = Modifier.fillMaxWidth())
-        Note(if (isMorse) "Reading Morse → text. Separate letters with spaces and words with /." else "Writing text → Morse.")
-        BigResultText(output) { copyToClipboard(context, output) }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = {
-                    playing?.cancel()
-                    playing = scope.launch {
-                        val unit = 90L
-                        for (c in morseToPlay) {
-                            when (c) {
-                                '.' -> { tone?.startTone(ToneGenerator.TONE_DTMF_9, unit.toInt()); delay(unit * 2) }
-                                '-' -> { tone?.startTone(ToneGenerator.TONE_DTMF_9, (unit * 3).toInt()); delay(unit * 4) }
-                                ' ' -> delay(unit * 2)
-                                '/' -> delay(unit * 4)
-                            }
-                        }
-                        playing = null
-                    }
-                },
-                enabled = tone != null && morseToPlay.isNotBlank(),
-            ) { Text(if (playing != null) "Playing…" else "Play sound") }
-            if (playing != null) OutlinedButton(onClick = { playing?.cancel(); playing = null }) { Text("Stop") }
-        }
-    }
-}
-
-@Composable
-private fun BigResultText(text: String, onCopy: () -> Unit) {
+internal fun BigResultText(text: String, onCopy: () -> Unit) {
     androidx.compose.material3.Card(
         Modifier.fillMaxWidth(),
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
@@ -315,7 +273,7 @@ private fun WordsScreen(tool: Tool, onBack: () -> Unit) {
 
 /** Listens to a sensor while on screen; returns null if the device doesn't have it. */
 @Composable
-private fun rememberSensor(type: Int, onValues: (FloatArray) -> Unit): Boolean {
+internal fun rememberSensor(type: Int, onValues: (FloatArray) -> Unit): Boolean {
     val context = LocalContext.current
     val manager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
     val sensor = remember(type) { manager.getDefaultSensor(type) }

@@ -38,7 +38,7 @@ Not possible offline: PDF ↔ Word/PowerPoint/Excel, HTML to PDF from a URL, AI 
 | Text (16) | Text cases, Find & replace, Sort lines, Text counter, Repeat, Remove white spaces / empty lines / duplicate lines / duplicate words / line breaks, Prefix/suffix, Number lines, Reverse text / lines / words, Add line breaks |
 | Units (13) | Length, Area, Mass, Temperature, Cooking, Time, Energy, Angle, Speed, Data, Data transfer, CSS units, Shoe size (EU, UK, US men/women, kids, Japan, Mondopoint/Korea/China, Australia, Brazil, Russia) |
 | Calculate (16) | Percentage, Average, Proportion, Aspect ratio, Fraction simplifier, Decimal to fraction, Prime number, Exponent, Factorial, Age, Time calculator, plus step-by-step working for addition (carries), subtraction (borrowing), long multiplication, long division and fractions (+ − × ÷, mixed and whole numbers) |
-| General (9) | Ruler, Morse code, Roman numerals, Number to words (incl. lakh/crore), Compass, Text ↔ bytes, Time zones, Level, Day counter |
+| General (14) | Ruler, Morse code (beeps, flashlight or screen), SOS signal, Flashlight (strobe, brightness), QR code maker, QR scanner, Qibla, Roman numerals, Number to words (incl. lakh/crore), Compass, Text ↔ bytes, Time zones, Level, Day counter |
 | Finance (4) | Loan EMI, Investment (lump sum + SIP), Bill splitter, Discount |
 | Random (5) | Lucky wheel, Flip a coin, Yes or no, Rock paper scissors, Roll dice |
 | Developer (1) | Base converter |

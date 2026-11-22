@@ -34,6 +34,36 @@ object GeneralOps {
         }
     }
 
+    /** One step of a Morse signal: the light or tone is [on] for [units] time units. */
+    data class Pulse(val on: Boolean, val units: Int)
+
+    /**
+     * Standard Morse timing for [morse] (dots, dashes, spaces between letters, / between words):
+     * dot 1 unit, dash 3, gap inside a letter 1, between letters 3, between words 7.
+     * Adjacent gaps merge, and there's no trailing gap. Newlines count as word breaks.
+     */
+    fun timeline(morse: String): List<Pulse> {
+        val out = mutableListOf<Pulse>()
+        var pendingGap = 0
+        for (c in morse.replace('·', '.').replace('–', '-').replace('_', '-')) {
+            when (c) {
+                '.', '-' -> {
+                    if (out.isNotEmpty()) out += Pulse(false, maxOf(pendingGap, 1))
+                    out += Pulse(true, if (c == '.') 1 else 3)
+                    pendingGap = 0
+                }
+                ' ' -> pendingGap = maxOf(pendingGap, 3)
+                '/', '\n' -> pendingGap = 7
+            }
+        }
+        return out
+    }
+
+    /** PARIS timing: one unit lasts 1200 / wpm milliseconds. */
+    fun unitMillis(wpm: Int): Long = 1200L / wpm.coerceIn(1, 60)
+
+    const val SOS = "... --- ..."
+
     // ---------- Roman numerals ----------
 
     private val ROMAN = listOf(1000 to "M", 900 to "CM", 500 to "D", 400 to "CD", 100 to "C", 90 to "XC", 50 to "L", 40 to "XL", 10 to "X", 9 to "IX", 5 to "V", 4 to "IV", 1 to "I")

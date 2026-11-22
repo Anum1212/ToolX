@@ -5,6 +5,13 @@
     <!-- No storage permissions: input comes from the system photo picker and
          output is written to MediaStore under the app's own folders. -->
 
+    <!-- Qibla only: GPS works offline, and the position stays on the phone. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- QR scanner only; scanning from a photo works without it. Frames never leave the phone. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <!-- No network, ever. ML Kit's libraries ask for these (for usage logging);
          the segmentation model is bundled, so strip them from the merged manifest. -->
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />

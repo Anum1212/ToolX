@@ -83,6 +83,7 @@ object ToolRegistry {
         com.toolx.app.tools.math.MathTools,
         com.toolx.app.tools.units.ShoeTools,
         com.toolx.app.tools.general.GeneralTools,
+        com.toolx.app.tools.qr.QrTools,
         com.toolx.app.tools.finance.FinanceTools,
         com.toolx.app.tools.random.RandomTools,
         com.toolx.app.tools.dev.DevTools,

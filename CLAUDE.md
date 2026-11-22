@@ -4,7 +4,7 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
 
 ## Product decisions
 
-- **Personal use.** No ads, no paywall, no analytics, no network. Files never leave the phone.
+- **Personal use**, installed on the user's and their family's phones, so the APK stays universal (all four ABIs; no abiFilters, decided 2026-11-22). No ads, no paywall, no analytics, no network. Files never leave the phone. The only runtime permissions are location (Qibla) and camera (QR scanner), both OK'd by the user on 2026-11-22. The position is kept in local prefs; camera frames are decoded on the phone. Neither is ever sent anywhere.
 - **Inspirations:** Tooly (com.yousx.thetoolsapp) provides the structure: a category grid, search, the same screen layout for every tool, offline. Vaux (com.vaux.vaux_editor) provides the video/image tool set. Do better than both: free exports have no watermark and there's no consent-screen nonsense.
 - **minSdk 29 (Android 10).** This means no storage permissions: input comes from the system photo picker, output goes through the MediaStore Downloads collection to `Download/ToolX/Video`, `/Image`, `/Audio` and `/PDF` (user request, 2026-11-22: one ToolX folder in Downloads instead of Movies/Pictures/Music). Media there is still indexed, so it shows in the gallery and photo picker.
 - **Media3 Transformer plus platform codecs, no FFmpeg.** The former "FFmpeg" tools were built natively on 2026-11-21 (user: "complete all coming soon features"):
@@ -56,7 +56,16 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
   - **Redact** rasterizes only the pages with boxes (200 dpi), so their text is truly gone. Text-extraction checks confirmed that.
   - **Repair** retries with a fresh `%PDF` header if PdfBox rejects the original.
   - **Not built yet:** Edit PDF, Scan to PDF, OCR, Compare, Forms. **Impossible offline:** the Office conversions, HTML from a URL, AI summarize and translate, PDF/A.
-- **Deliberately not built (user confirmed, 2026-11-21):** Currency and a "Sound" unit converter. The Lucky wheel's upside-down labels are accepted as they are.
+- **Signal tools** (`tools/general/SignalTools.kt`, 2026-11-22): `GeneralOps.timeline` turns Morse into standard-timing `Pulse`s (dot 1, dash 3, gaps 1/3/7 units; PARIS = 50 units, tested), and `Signal` plays them on the torch (`CameraManager.setTorchMode`, no CAMERA permission), a `ToneGenerator` and an on-screen lamp, timed against the clock so it doesn't drift.
+  - **Morse code** sends as beeps, flashlight and/or screen, 5–30 WPM, optional repeat.
+  - **SOS signal** repeats SOS on flashlight, a full-screen flash dialog (full brightness on the dialog's own window, since it's the top window; tap or Back stops) and an optional alarm tone on `STREAM_ALARM`. Torch timing was measured on the emulator from CameraService logs: 200/600 ms pulses, 1.4 s between repeats.
+- **Flashlight** (`FlashlightScreen` in `SignalTools.kt`): torch on/off, brightness via `turnOnTorchWithStrengthLevel` on Android 13+ when the flash has more than one level, strobe 1–15 Hz (clock-timed, 50% duty, with a seizure warning), or the screen as the light. One `LaunchedEffect` owns the torch, so leaving the screen always turns it off. The full-screen light dialog (`ScreenLight`) is shared with SOS.
+- **QR tools** (`tools/qr/`, module `QrTools`, listed under General): ZXing core 3.5.3 makes codes, ML Kit `barcode-scanning` 17.3.0 (bundled model, offline) plus CameraX 1.4.1 scans them. `QrCodes` is pure: payload builders (Wi-Fi with backslash escapes, vCard 3.0, mailto, SMSTO, tel), a parser for those plus MECARD, MATMSG and geo, and `matrix()`. `QrCodesTest` round-trips encoded codes through ZXing's own decoder.
+  - Maker: live preview drawn from the BitMatrix, always black on white with a 4-module quiet zone; PNG export ~1024 px.
+  - Scanner: needs CAMERA only for live scanning; "Scan from photo" uses the photo picker and works without it. Wi-Fi "Join network" uses `ACTION_WIFI_ADD_NETWORKS` (Android 11+, no permission; the system shows "Save this network?"); Android 10 copies the password and opens Wi-Fi settings.
+  - Emulator-tested: a Wi-Fi code saved as PNG and scanned back from the photo (password with `;` intact), the Save-network sheet, the live preview. The virtual room can't show a code, so live decoding needs a real phone.
+- **Qibla** (`QiblaScreen.kt`, pure maths in `Qibla.kt`): great-circle bearing and haversine distance to the Kaaba; the rotation-vector heading is magnetic, so `GeomagneticField` declination converts it to true north. Location asks GPS, fused and network at once and takes the first fix (fused alone at BALANCED skipped GPS on the emulator); last fix < 10 min is reused, and coordinates can be typed in. Checked: London 119.0° / 4,794 km.
+- **Deliberately not built (user confirmed, 2026-11-21):** Currency and a "Sound" unit converter. Also no stopwatch or timer (2026-11-22: "clock apps can do that"). The Lucky wheel's upside-down labels are accepted as they are.
 - **Background removal** (`tools/image/BackgroundEngine.kt`, `MaskOps.kt`, `BackgroundScreens.kt`) uses ML Kit **selfie** segmentation with the *bundled* model (~4.5 MB).
   - It runs on the device and finds **people only**. The Subject Segmentation API was rejected because Play services downloads its model.
   - The manifest uses `tools:node="remove"` to strip ML Kit's INTERNET and ACCESS_NETWORK_STATE permissions. Keep it that way.
@@ -88,7 +97,7 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
 
 ## Build / environment
 
-- AGP 8.7.3, Kotlin 2.1.0, Gradle 8.11.1, Compose BOM 2024.12.01, Media3 1.5.1.
+- AGP 8.7.3, Kotlin 2.1.0, Gradle 8.11.1, Compose BOM 2024.12.01, Media3 1.5.1, CameraX 1.4.1.
 - **Run Gradle on JDK 21** (Android Studio's bundled JBR). Gradle 8.11.1 does not support Java 25. Upgrading to Gradle 9 would also require upgrading AGP, so upgrade the whole toolchain together, deliberately.
 - **Release (R8):** `proguard-rules.pro` has `-dontwarn` for `com.gemalto.jp2` (PdfBox's optional JPEG 2000 codec) and `java.awt` / `javax.imageio` / `javax.swing` (jaudiotagger's desktop artwork code). Without them R8 fails with "Missing classes". It also keeps `org.jaudiotagger.**` and `com.tom_roush.pdfbox.**` whole, because both use reflection. The release APK was checked on the emulator on 2026-11-21: Edit tags read tags and a cover, and PDF to text extracted text.
 - There are no `gradlew` scripts checked in. For a command-line build, use the Gradle 8.11.1 distribution Studio downloaded (`~/.gradle/wrapper/dists/gradle-8.11.1-bin/*/gradle-8.11.1/bin/gradle`), with `JAVA_HOME` set to the JBR, and run `gradle --console=plain :app:compileDebugKotlin`.
@@ -113,14 +122,14 @@ adb shell content call --method scan_volume --uri content://media --arg external
   - Audio: Trim, Cut, Merge, Speed, Volume.
   - Image: Resize, Compress & convert, Rotate & flip, Crop, Remove background, Passport photo.
   - PDF (16): Merge, Split, Compress, Organize, Rotate, Crop, PDF to JPG, Images to PDF, PDF to text/Markdown, Page numbers, Watermark, Sign, Redact, Protect, Unlock, Repair. All were export-tested on the emulator (see TESTING.md).
-  - Everyday tools (2026-11-21): 16 text, 12 unit, 11 calculation, 9 general, 4 finance, 5 random and 1 developer.
+  - Everyday tools (2026-11-21): 16 text, 12 unit, 11 calculation, 14 general (9 + SOS, Qibla, Flashlight and the two QR tools, 2026-11-22), 4 finance, 5 random and 1 developer.
     - All 58 were opened on the emulator with no crashes.
     - Spot-checked results: EMI, unit values, Roman numerals, number to words, base conversion, fraction, prime, factorial, and the wheel winner matching the pointer.
     - Compass, Level and Ruler need a real phone to judge accuracy.
     - The Ruler has no calibration slider (removed 2026-11-22 at the user's request, as other ruler apps have none). It uses the panel's `ydpi`, falling back to `densityDpi` when `ydpi` looks bogus.
   - Former "Soon" tools (2026-11-21): Video Reverse, Video to GIF, Convert video, Add music, Watermark video; Audio Convert, Reverse, Noise reduction, Edit tags; Image Round corners, Color picker, Watermark. No tool shows "Soon" any more. All were export-tested (TESTING.md).
 - **Tests:** see `TESTING.md`.
-  - 143 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
+  - 160 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
   - The calc/finance helpers are `internal` top-level functions (`averageStats`, `emi`, `loanSchedule`, `futureValue`, `factorize`, …) so tests can reach them. Keep new logic out of composables, and add a test with an independently known expected value.
   - On the emulator, sensors can be faked with `adb emu sensor set acceleration x:y:z` and `adb emu sensor set magnetic-field x:y:z`.
 - **Export-tested on the emulator (2026-11-21):**

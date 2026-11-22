@@ -15,6 +15,11 @@ mlkitSelfie = "16.0.0-beta6"
 pdfbox = "2.0.27.0"
 # Audio tags (MP3/ID3, M4A, FLAC, OGG); LGPL; has an Android mode that avoids javax.imageio.
 jaudiotagger = "3.0.1"
+# QR generation (Apache 2.0), pure Java.
+zxing = "3.5.3"
+# Bundled barcode model (~2.4 MB): scans on the device, no Play services download.
+mlkitBarcode = "17.3.0"
+camerax = "1.4.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +45,11 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 jaudiotagger = { group = "net.jthink", name = "jaudiotagger", version.ref = "jaudiotagger" }
 pdfbox-android ={ group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
 mlkit-segmentation-selfie ={ group = "com.google.mlkit", name = "segmentation-selfie", version.ref = "mlkitSelfie" }
+mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 

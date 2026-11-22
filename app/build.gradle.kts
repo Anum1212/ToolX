@@ -71,6 +71,11 @@ dependencies {
     implementation(libs.mlkit.segmentation.selfie)
     implementation(libs.pdfbox.android)
     implementation(libs.jaudiotagger)
+    implementation(libs.zxing.core)
+    implementation(libs.mlkit.barcode.scanning)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
 
     testImplementation(libs.junit)
 }
