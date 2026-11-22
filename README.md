@@ -45,6 +45,10 @@ Not possible offline: PDF ↔ Word/PowerPoint/Excel, HTML to PDF from a URL, AI 
 
 Not built, by decision: Currency (needs live exchange rates, which conflicts with "no network") and a "Sound" unit converter.
 
+## Releases
+
+Publish a release on GitHub (Releases > Draft a new release, with a tag like `v1.0.0`) and the "Build release APK" workflow builds a signed `ToolX-v1.0.0.apk` and attaches it to the release, ready to download and install on any Android 10+ phone. To build for a release that already exists, use Actions > Build release APK > Run workflow.
+
 Saved files go to `Download/ToolX`, in the sub-folders `Video`, `Image`, `Audio` and `PDF`.
 
 ### Look and settings
