@@ -7,6 +7,8 @@ import androidx.compose.material.icons.automirrored.rounded.MergeType
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.CropRotate
 import androidx.compose.material.icons.rounded.AssignmentInd
 import androidx.compose.material.icons.rounded.Wallpaper
@@ -68,6 +70,8 @@ object ToolIds {
     const val IMAGE_ROUND = "image_round"
     const val IMAGE_COLOR_PICKER = "image_color_picker"
     const val IMAGE_WATERMARK = "image_watermark"
+    const val IMAGE_BLUR = "image_blur"
+    const val IMAGE_COLOR_CODES = "image_color_codes"
     const val IMAGES_TO_PDF = "images_to_pdf"
 }
 
@@ -130,7 +134,10 @@ object ToolRegistry {
         Tool(ToolIds.IMAGE_PASSPORT, "Passport photo", "ID photo with a plain background, sized for printing", Icons.Rounded.AssignmentInd, ToolCategory.IMAGE, available = true, keywords = listOf("passport", "visa", "id", "35x45", "2x2", "background", "print")),
         Tool(ToolIds.IMAGE_ROUND, "Round corners", "Give an image rounded corners", Icons.Rounded.RoundedCorner, ToolCategory.IMAGE, available = true, keywords = listOf("circle", "radius")),
         Tool(ToolIds.IMAGE_COLOR_PICKER, "Color picker", "Pick colors from a photo", Icons.Rounded.Colorize, ToolCategory.IMAGE, available = true, keywords = listOf("hex", "rgb", "palette")),
-        Tool(ToolIds.IMAGE_WATERMARK, "Watermark image", "Stamp text or a logo on a photo", Icons.AutoMirrored.Rounded.BrandingWatermark, ToolCategory.IMAGE, available = true, keywords = listOf("logo", "text")),    )
+        Tool(ToolIds.IMAGE_COLOR_CODES, "Color codes", "Pick any colour; HEX ↔ RGB, HSL, CMYK", Icons.Rounded.Palette, ToolCategory.IMAGE, available = true, keywords = listOf("hex", "rgb", "hsl", "cmyk", "colour", "color", "code", "convert", "wheel", "contrast")),
+        Tool(ToolIds.IMAGE_WATERMARK, "Watermark image", "Stamp text or a logo on a photo", Icons.AutoMirrored.Rounded.BrandingWatermark, ToolCategory.IMAGE, available = true, keywords = listOf("logo", "text")),
+        Tool(ToolIds.IMAGE_BLUR, "Blur & pixelate", "Hide faces, plates or details, or blur the background", Icons.Rounded.BlurOn, ToolCategory.IMAGE, available = true, keywords = listOf("blur", "pixelate", "censor", "hide", "face", "privacy", "redact", "mosaic", "portrait", "background")),
+    )
 
     fun find(id: String?): Tool? = all.firstOrNull { it.id == id }
 

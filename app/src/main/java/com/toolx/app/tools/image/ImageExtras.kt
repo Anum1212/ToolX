@@ -180,7 +180,7 @@ internal object ImageExtrasEngine {
 
 /** Pick a photo, load a working copy, then show [content]. */
 @Composable
-private fun PhotoFrame(tool: Tool, onBack: () -> Unit, onNew: () -> Unit = {}, content: @Composable (uri: Uri, working: Bitmap) -> Unit) {
+internal fun PhotoFrame(tool: Tool, onBack: () -> Unit, onNew: () -> Unit = {}, content: @Composable (uri: Uri, working: Bitmap) -> Unit) {
     val context = LocalContext.current
     var uri by rememberSaveable { mutableStateOf<Uri?>(null) }
     val pick = rememberMediaPicker(PickType.IMAGE) { uri = it; onNew() }

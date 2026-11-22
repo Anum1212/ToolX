@@ -15,8 +15,8 @@ A personal Android toolbox for video, audio and image tasks. Everything runs on 
 | Split | ✅ | Reverse | ✅ | Watermark (text or logo, tiled) | ✅ |
 | Merge | ✅ | Noise reduction (with before/after preview) | ✅ | Remove background (people) | ✅ |
 | Speed | ✅ | Edit tags (title, artist, album, cover…) | ✅ | Passport photo (+ 4×6 print sheet) | ✅ |
-| Reverse (up to 60 s, with sound) | ✅ | | | | |
-| Video to GIF | ✅ | | | | |
+| Reverse (up to 60 s, with sound) | ✅ | | | Blur & pixelate (boxes, background or people) | ✅ |
+| Video to GIF | ✅ | | | Color codes (HSV picker, HEX ↔ RGB, contrast, favourites) | ✅ |
 | Convert (H.264 / H.265 MP4) | ✅ | | | | |
 | Add music, Watermark | ✅ | | | | |
 
@@ -40,7 +40,7 @@ Not possible offline: PDF ↔ Word/PowerPoint/Excel, HTML to PDF from a URL, AI 
 | Calculate (16) | Percentage, Average, Proportion, Aspect ratio, Fraction simplifier, Decimal to fraction, Prime number, Exponent, Factorial, Age, Time calculator, plus step-by-step working for addition (carries), subtraction (borrowing), long multiplication, long division and fractions (+ − × ÷, mixed and whole numbers) |
 | General (14) | Ruler, Morse code (beeps, flashlight or screen), SOS signal, Flashlight (strobe, brightness), QR code maker, QR scanner, Qibla, Roman numerals, Number to words (incl. lakh/crore), Compass, Text ↔ bytes, Time zones, Level, Day counter |
 | Finance (4) | Loan EMI, Investment (lump sum + SIP), Bill splitter, Discount |
-| Random (5) | Lucky wheel, Flip a coin, Yes or no, Rock paper scissors, Roll dice |
+| Random (6) | Lucky wheel, Flip a coin, Yes or no, Rock paper scissors, Roll dice, Password generator (random, easy-to-type, PIN) |
 | Developer (1) | Base converter |
 
 Not built, by decision: Currency (needs live exchange rates, which conflicts with "no network") and a "Sound" unit converter.

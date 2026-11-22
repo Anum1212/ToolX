@@ -101,6 +101,8 @@ private fun ToolScreen(tool: Tool, onBack: () -> Unit) {
         ToolIds.IMAGE_ROUND -> com.toolx.app.tools.image.RoundCornersScreen(tool, onBack)
         ToolIds.IMAGE_COLOR_PICKER -> com.toolx.app.tools.image.ColorPickerScreen(tool, onBack)
         ToolIds.IMAGE_WATERMARK -> com.toolx.app.tools.image.WatermarkImageScreen(tool, onBack)
+        ToolIds.IMAGE_BLUR -> com.toolx.app.tools.image.BlurScreen(tool, onBack)
+        ToolIds.IMAGE_COLOR_CODES -> com.toolx.app.tools.image.ColorCodesScreen(tool, onBack)
         else -> ToolRegistry.moduleScreen(tool.id)?.invoke(tool, onBack) ?: ComingSoonScreen(tool, onBack)
     }
 }

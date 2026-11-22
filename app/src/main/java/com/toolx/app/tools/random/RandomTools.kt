@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material.icons.rounded.BackHand
 import androidx.compose.material.icons.rounded.Casino
 import androidx.compose.material.icons.rounded.Loop
@@ -81,6 +82,7 @@ object RandomTools : ToolModule {
         t("rand_yesno", "Yes or no", "Let chance decide", Icons.Rounded.ThumbsUpDown, "yes", "no", "answer", "8 ball"),
         t("rand_rps", "Rock paper scissors", "Play against the phone", Icons.Rounded.BackHand, "rps", "rock", "paper", "scissors"),
         t("rand_dice", "Roll dice", "1–6 dice, d4 to d20", Icons.Rounded.Casino, "dice", "die", "d20", "roll"),
+        t("rand_password", "Password generator", "Strong passwords, easy-to-type phrases or PINs", Icons.Rounded.Password, "password", "passphrase", "pin", "secure", "random", "generate"),
     )
 
     override val screens: Map<String, ToolScreenFn> = mapOf(
@@ -89,6 +91,7 @@ object RandomTools : ToolModule {
         "rand_yesno" to { tool, back -> YesNoScreen(tool, back) },
         "rand_rps" to { tool, back -> RpsScreen(tool, back) },
         "rand_dice" to { tool, back -> DiceScreen(tool, back) },
+        "rand_password" to { tool, back -> PasswordScreen(tool, back) },
     )
 }
 
