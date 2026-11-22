@@ -6,7 +6,7 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
 
 - **Personal use.** No ads, no paywall, no analytics, no network. Files never leave the phone.
 - **Inspirations:** Tooly (com.yousx.thetoolsapp) provides the structure: a category grid, search, the same screen layout for every tool, offline. Vaux (com.vaux.vaux_editor) provides the video/image tool set. Do better than both: free exports have no watermark and there's no consent-screen nonsense.
-- **minSdk 29 (Android 10).** This means no storage permissions: input comes from the system photo picker, output goes through MediaStore to `Movies/ToolX`, `Pictures/ToolX` and `Music/ToolX`.
+- **minSdk 29 (Android 10).** This means no storage permissions: input comes from the system photo picker, output goes through the MediaStore Downloads collection to `Download/ToolX/Video`, `/Image`, `/Audio` and `/PDF` (user request, 2026-11-22: one ToolX folder in Downloads instead of Movies/Pictures/Music). Media there is still indexed, so it shows in the gallery and photo picker.
 - **Media3 Transformer plus platform codecs, no FFmpeg.** The former "FFmpeg" tools were built natively on 2026-11-21 (user: "complete all coming soon features"):
   - **Video Reverse** (`video/VideoFrames.kt`): frames via `MediaMetadataRetriever.getFramesAtIndex` in batches of 8 → JPEGs in cache → AVC encoder input Surface in reverse with restamped PTS; audio decoded, reversed, AAC-encoded. Capped at 60 s and 1280 px long side.
   - **Video to GIF** (`video/GifEncoder.kt`): own GIF89a writer, per-frame median-cut palette (`Quantizer`) and `Lzw`; `GifEncoderTest` round-trips LZW with an independent giflib-style decoder.
@@ -14,7 +14,7 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
   - **Audio** (`audio/AudioCodec.kt`, `AudioDsp.kt`): decode to 16-bit PCM (≤20 min), then M4A (via WAV + Transformer), WAV, FLAC (MediaCodec, "fLaC" header ensured) or Opus (48 kHz, ≤2 ch, OGG muxer). Noise reduction is spectral gating (FFT 2048, hop ¼, noise profile from the quietest 10%, three passes to bound memory).
   - **Edit tags** uses jaudiotagger 3.0.1 (`TagOptionSingleton.isAndroid = true`) on a cache copy and saves a tagged copy; the original is never touched.
   - Still impossible: MP3 output (Android has no MP3 encoder) and MKV/AVI output. Revisit FFmpeg only if those matter; `ffmpeg-kit` was retired in 2025.
-- **Audio input** uses the document picker (`OpenDocument`, `audio/*`), because the photo picker can't show audio. Read access is kept with `takePersistableUriPermission`. Audio output is AAC in `.m4a` (Convert audio can pick WAV/FLAC/Opus), saved to `Music/ToolX`.
+- **Audio input** uses the document picker (`OpenDocument`, `audio/*`), because the photo picker can't show audio. Read access is kept with `takePersistableUriPermission`. Audio output is AAC in `.m4a` (Convert audio can pick WAV/FLAC/Opus), saved to `Download/ToolX/Audio`.
 - **Search** matches every typed word anywhere in title, description, keywords or category name ("reverse video" → Video › Reverse video), title matches first.
 - **No DI framework** (no Hilt). Keep it simple.
 - **Everyday tools** follow Tooly's catalogue: Text, Units, Calculate, General, Finance, Random and Developer categories.
@@ -47,7 +47,7 @@ Personal-use Android toolbox for video and image tasks. README.md covers the too
   - **Rounding:** EU-style sizes are whole numbers, UK/US go in half sizes. Kids' rows appear only within their range. Checked against a common chart row: 26 cm = UK 7 = US M 8 = US W 9.5 = EU 41.
 - **PDF tools** (`tools/pdf/`, a `ToolModule` like the everyday tools) were added 2026-11-21, following iLovePDF's tool list, offline only.
   - **Libraries:** PdfBox-Android 2.0.27.0 does editing (call `PdfEngine.init` first; it's lazy). The platform `PdfRenderer` (pdfium) renders pages; it applies `/Rotate`, so its bitmaps are what the reader sees.
-  - **Files:** every operation works on a cache copy (`PdfEngine.localCopy`, keyed by Uri + size). Output goes to `Documents/ToolX` through the MediaStore Files collection (`MediaKind.DOCUMENT`).
+  - **Files:** every operation works on a cache copy (`PdfEngine.localCopy`, keyed by Uri + size). Output goes to `Download/ToolX/PDF` (`MediaKind.DOCUMENT`).
   - **Rotated pages:** all placement goes through `PdfOps.visualToUser` / `cropToUser`, which map "what the reader sees, top-left origin" to PDF user space for /Rotate 0/90/180/270. Stamps use a text matrix rotated by the page rotation, so they come out upright. Keep using these for anything new that places content.
   - **Copying pages** (split, organize, previews) must use `copyPage`:
     - It copies inherited MediaBox, CropBox, Resources and Rotate explicitly.
@@ -117,6 +117,7 @@ adb shell content call --method scan_volume --uri content://media --arg external
     - All 58 were opened on the emulator with no crashes.
     - Spot-checked results: EMI, unit values, Roman numerals, number to words, base conversion, fraction, prime, factorial, and the wheel winner matching the pointer.
     - Compass, Level and Ruler need a real phone to judge accuracy.
+    - The Ruler has no calibration slider (removed 2026-11-22 at the user's request, as other ruler apps have none). It uses the panel's `ydpi`, falling back to `densityDpi` when `ydpi` looks bogus.
   - Former "Soon" tools (2026-11-21): Video Reverse, Video to GIF, Convert video, Add music, Watermark video; Audio Convert, Reverse, Noise reduction, Edit tags; Image Round corners, Color picker, Watermark. No tool shows "Soon" any more. All were export-tested (TESTING.md).
 - **Tests:** see `TESTING.md`.
   - 143 JVM unit tests (`gradle :app:testDebugUnitTest`) cover the pure logic.
@@ -138,7 +139,7 @@ adb shell content call --method scan_volume --uri content://media --arg external
   - **PDF test files:** a script in the session scratchpad wrote a 4-page test PDF by hand (headings, bullets, an account number to redact, an embedded JPEG, a `/Rotate 90` page, and a MediaBox inherited from /Pages), plus damaged copies with a cut-off xref, a bad header and leading junk. Outputs were checked by rendering them with the app's own PDF to JPG (pdfium, independent of PdfBox) or by extracting their text.
   - On screens with a drawing canvas (Redact, Sign, Crop), adb swipes that start on the page draw or move things instead of scrolling. Scroll from the left margin (x ≈ 30).
   - Escape doesn't always close the keyboard. Use `KEYCODE_BACK`.
-  - The photo picker lists the *newest* image first, and your own outputs and screenshots count. Save screenshots to `/data/local/tmp`, not `/sdcard`, and clear `Pictures/ToolX` between runs, or the next test silently uses a previous output as its input.
+  - The photo picker lists the *newest* image first, and your own outputs and screenshots count. Save screenshots to `/data/local/tmp`, not `/sdcard`, and clear `Download/ToolX/Image` between runs, or the next test silently uses a previous output as its input.
   - `uiautomator dump` fails while an ExoPlayer view is on screen, so tap by coordinates there.
   - The audio document picker path on the emulator is Audio › Unknown › Music.
   - The audio picker groups files by artist/album tags: untagged files sit under Audio › Unknown › <folder>, but a file tagged by Edit tags moves to Audio › <artist> › <album>.

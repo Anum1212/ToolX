@@ -272,7 +272,7 @@ fun PdfToolFrame(
         val current = uri
         if (current == null) {
             PickPrompt("Choose a PDF", Icons.Rounded.PictureAsPdf, onClick = pick)
-            Note("Everything happens on your phone. Results are saved to Documents/ToolX.")
+            Note("Everything happens on your phone. Results are saved to Download/ToolX/PDF.")
             return@ToolScaffold
         }
         val name = rememberDisplayName(current)

@@ -129,7 +129,7 @@ internal object TagEngine {
     }
 
     /**
-     * Writes [tags] and the cover into a copy and saves it to Music/ToolX under the original
+     * Writes [tags] and the cover into a copy and saves it to Download/ToolX/Audio under the original
      * name. [cover] null keeps the existing art; [removeCover] deletes it.
      */
     suspend fun write(context: Context, uri: Uri, tags: Tags, cover: ByteArray?, removeCover: Boolean): SavedMedia = withContext(Dispatchers.IO) {
@@ -201,7 +201,7 @@ fun TagEditorScreen(tool: Tool, onBack: () -> Unit) {
         val u = uri
         if (u == null) {
             PickPrompt("Choose a song", Icons.Rounded.LibraryMusic, onClick = pick)
-            Note("MP3, M4A, FLAC, OGG and WAV. A tagged copy is saved to Music/ToolX; the original isn't changed.")
+            Note("MP3, M4A, FLAC, OGG and WAV. A tagged copy is saved to Download/ToolX/Audio; the original isn't changed.")
             return@ToolScaffold
         }
         SelectedInfo(u, rememberDisplayName(u), onChange = pick)

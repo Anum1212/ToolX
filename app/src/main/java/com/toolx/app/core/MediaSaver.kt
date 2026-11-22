@@ -16,20 +16,25 @@ data class SavedMedia(
     val uri: Uri,
     val mimeType: String,
     val displayName: String,
-    /** Human-readable folder, e.g. "Movies/ToolX". */
+    /** Human-readable folder, e.g. "Download/ToolX/Video". */
     val location: String,
     val sizeBytes: Long?,
 )
 
-enum class MediaKind(val baseDir: String) {
-    VIDEO(Environment.DIRECTORY_MOVIES),
-    IMAGE(Environment.DIRECTORY_PICTURES),
-    AUDIO(Environment.DIRECTORY_MUSIC),
+/** Each kind gets its own sub-folder of Download/ToolX. */
+enum class MediaKind(val folder: String) {
+    VIDEO("Video"),
+    IMAGE("Image"),
+    AUDIO("Audio"),
     /** PDFs and text files. */
-    DOCUMENT(Environment.DIRECTORY_DOCUMENTS),
+    DOCUMENT("PDF"),
 }
 
-/** Writes results into shared storage (Movies/ToolX, Pictures/ToolX, Music/ToolX, Documents/ToolX). */
+/**
+ * Writes results into Download/ToolX/<Video|Image|Audio|PDF>. The Downloads collection accepts any
+ * file type without storage permissions, and MediaStore still indexes media there, so outputs
+ * still show up in the gallery and the photo picker.
+ */
 object MediaSaver {
 
     private const val APP_FOLDER = "ToolX"
@@ -51,14 +56,8 @@ object MediaSaver {
         writer: (OutputStream) -> Unit,
     ): SavedMedia {
         val resolver = context.contentResolver
-        val collection = when (kind) {
-            MediaKind.VIDEO -> MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-            MediaKind.IMAGE -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-            MediaKind.AUDIO -> MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-            // Non-media files may live under Documents/ via the generic Files collection.
-            MediaKind.DOCUMENT -> MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        }
-        val location = "${kind.baseDir}/$APP_FOLDER"
+        val collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val location = "${Environment.DIRECTORY_DOWNLOADS}/$APP_FOLDER/${kind.folder}"
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)

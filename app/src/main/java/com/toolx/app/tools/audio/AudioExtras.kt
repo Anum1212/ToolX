@@ -111,7 +111,7 @@ fun AudioConvertScreen(tool: Tool, onBack: () -> Unit) {
     var format by rememberSaveable { mutableStateOf(AudioCodec.Format.M4A) }
     AudioToolFrame(
         tool, onBack, exportLabel = "Convert",
-        savedNote = "Saves as ${format.label} to Music/ToolX.",
+        savedNote = "Saves as ${format.label} to Download/ToolX/Audio.",
         options = { durationMs ->
             SectionLabel("Save as")
             OptionChips(formats, format, label = { it.label }) { format = it }

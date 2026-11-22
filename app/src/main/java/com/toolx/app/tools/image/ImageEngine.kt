@@ -225,7 +225,7 @@ object ImageEngine {
             }
         }
 
-    /** Encodes and saves [bitmap] to Pictures/ToolX, then recycles it. */
+    /** Encodes and saves [bitmap] to Download/ToolX/Image, then recycles it. */
     internal fun save(context: Context, bitmap: Bitmap, tag: String, format: OutputFormat, quality: Int): SavedMedia {
         val toWrite = if (format == OutputFormat.JPEG && bitmap.hasAlpha()) flattenOnWhite(bitmap) else bitmap
         return try {

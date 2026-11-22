@@ -161,11 +161,11 @@ private fun textPaint(color: Color, sizePx: Float, bold: Boolean = false) = andr
 @Composable
 private fun RulerScreen(tool: Tool, onBack: () -> Unit) {
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("ruler", Context.MODE_PRIVATE) }
-    var calibration by remember { mutableFloatStateOf(prefs.getFloat("calibration", 1f)) }
     var markerY by rememberSaveable { mutableFloatStateOf(-1f) }
-    val ydpi = context.resources.displayMetrics.ydpi
-    val pxPerInch = ydpi * calibration
+    // The panel's physical DPI. A few phones report a placeholder here; if it's far from the
+    // density bucket, trust the bucket instead.
+    val metrics = context.resources.displayMetrics
+    val pxPerInch = metrics.ydpi.takeIf { it > 0 && it / metrics.densityDpi in 0.75f..1.33f } ?: metrics.densityDpi.toFloat()
     val pxPerMm = pxPerInch / 25.4f
     val line = MaterialTheme.colorScheme.onSurface
     val accent = MaterialTheme.colorScheme.primary
@@ -216,13 +216,6 @@ private fun RulerScreen(tool: Tool, onBack: () -> Unit) {
                 color = accent,
             )
             Note("Line the object up with the top edge of this area. Tap or drag to measure.")
-            Text("Calibration ${(calibration * 100).roundToInt()}%", style = MaterialTheme.typography.labelMedium)
-            Slider(
-                value = calibration,
-                onValueChange = { calibration = it; prefs.edit().putFloat("calibration", it).apply() },
-                valueRange = 0.8f..1.2f,
-            )
-            Note("If a real ruler disagrees, adjust until they match. It's saved for next time.")
         }
     }
 }

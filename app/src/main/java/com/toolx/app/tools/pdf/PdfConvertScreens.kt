@@ -98,7 +98,7 @@ fun PdfToImagesScreen(tool: Tool, onBack: () -> Unit) {
             val s = ready.pages.size(0)
             px = (s.width / 72f * dpi).roundToInt() to (s.height / 72f * dpi).roundToInt()
         }
-        px?.let { (w, h) -> Note("${pages.size} image(s), about $w×$h px each, saved to Pictures/ToolX.") }
+        px?.let { (w, h) -> Note("${pages.size} image(s), about $w×$h px each, saved to Download/ToolX/Image.") }
         ExportButton("Convert", state, enabled = pages.isNotEmpty()) {
             val p = pages; val d = dpi; val f = format
             vm.runAll { ctx, progress -> PdfEngine.toImages(ctx, ready.file, p, d, f, progress) }

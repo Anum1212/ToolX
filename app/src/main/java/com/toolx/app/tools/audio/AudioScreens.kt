@@ -57,7 +57,7 @@ internal fun AudioToolFrame(
     options: @Composable (durationMs: Long?) -> Unit = {},
     /** Like [options] but also given the picked file (for previews that process it). */
     fileOptions: (@Composable (uri: Uri, durationMs: Long?) -> Unit)? = null,
-    savedNote: String? = "Saves as M4A (AAC) to Music/ToolX.",
+    savedNote: String? = "Saves as M4A (AAC) to Download/ToolX/Audio.",
     task: suspend (context: Context, uri: Uri, durationMs: Long?, onProgress: (Float) -> Unit) -> SavedMedia,
 ) {
     val vm: ProcessingViewModel = viewModel()

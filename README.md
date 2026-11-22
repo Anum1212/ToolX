@@ -22,7 +22,7 @@ A personal Android toolbox for video, audio and image tasks. Everything runs on 
 
 Audio exports are AAC in `.m4a` unless Convert picks another format. There's no MP3 output (Android has no MP3 encoder) and no MKV/AVI output; everything is done with the platform codecs, no FFmpeg.
 
-### PDF (all offline; saved to `Documents/ToolX`)
+### PDF (all offline; saved to `Download/ToolX/PDF`)
 
 | Pages | Convert | Stamp & secure |
 |---|---|---|
@@ -45,7 +45,7 @@ Not possible offline: PDF ↔ Word/PowerPoint/Excel, HTML to PDF from a URL, AI 
 
 Not built, by decision: Currency (needs live exchange rates, which conflicts with "no network") and a "Sound" unit converter.
 
-Saved files go to `Movies/ToolX`, `Pictures/ToolX`, `Music/ToolX` and `Documents/ToolX`.
+Saved files go to `Download/ToolX`, in the sub-folders `Video`, `Image`, `Audio` and `PDF`.
 
 ### Look and settings
 
